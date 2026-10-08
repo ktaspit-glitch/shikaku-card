@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>しかくしえん カード</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f08a24">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="しかくカード">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+<style id="pagesize">@page { size: A4 portrait; margin: 0; }</style>
+<style>
+  /* しくみ：うえに タブと ボタン、ひだりに へんしゅう、みぎに いんさつ する かみの みほん。スマホでは みほん → へんしゅうの じゅん。
+     かみの みほん（.page）は いつも しろい かみの まま。 */
+  :root {
+    --ui-bg: #efe9de; --ui-surface: #ffffff; --ui-soft: #fffaf2; --ui-row: #fffdf9; --ui-fg: #333333; --ui-muted: #6d5b45;
+    --ui-line: #e0d6c6; --ui-line2: #f1ebe1; --ui-panel: #f3d9b5; --ui-active: #ffe0b2; --ui-tip: #fff8e1; --ui-head: #e65100; --ui-warn: #c62828;
+    --accent: #f08a24; --line: var(--ui-line); --panel: var(--ui-panel);
+    --emoji: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ui-bg: #1f1b16; --ui-surface: #2a251f; --ui-soft: #332c24; --ui-row: #2f2922; --ui-fg: #eee6da; --ui-muted: #c9b9a3;
+      --ui-line: #4a4036; --ui-line2: #3d352c; --ui-panel: #5a4630; --ui-active: #6b4a22; --ui-tip: #3a3020; --ui-head: #ffb26b; --ui-warn: #ff8a80;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ui-bg: #1f1b16; --ui-surface: #2a251f; --ui-soft: #332c24; --ui-row: #2f2922; --ui-fg: #eee6da; --ui-muted: #c9b9a3;
+    --ui-line: #4a4036; --ui-line2: #3d352c; --ui-panel: #5a4630; --ui-active: #6b4a22; --ui-tip: #3a3020; --ui-head: #ffb26b; --ui-warn: #ff8a80;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  [hidden] { display: none !important; }
+  body { font-family: "Kosugi Maru", "Meiryo", sans-serif; background: var(--ui-bg); color: var(--ui-fg); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--ui-surface); border-bottom: 2px solid var(--panel); padding: 8px 16px; display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+  header .group { display: flex; gap: 6px; flex-wrap: wrap; }
+  button { font: inherit; font-size: 15px; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--ui-soft); color: var(--ui-fg); cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.active { background: var(--ui-active); border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #status { padding: 6px 16px; font-size: 14px; color: var(--ui-muted); min-height: 30px; }
+  #status.warn { color: var(--ui-warn); }
+  main { display: flex; gap: 14px; padding: 0 16px 24px; align-items: flex-start; }
+  .editor { width: 400px; flex: none; background: var(--ui-surface); border: 2px solid var(--panel); border-radius: 16px; padding: 12px 14px; max-height: calc(100vh - 110px); overflow: auto; }
+  .preview { flex: 1; min-width: 0; }
+  @media (max-width: 960px) { main { flex-direction: column; align-items: stretch; } .editor { width: auto; max-height: none; } }
+  @media (max-width: 700px) {
+    header { position: static; }
+    #tabs { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 4px; }
+    #tabs button { flex: none; }
+    button { font-size: 14px; padding: 7px 10px; }
+    .preview { order: -1; }
+    .editor { padding: 10px; }
+    .iconbtn { width: 56px; height: 56px; font-size: 56px; }
+  }
+  .editor h3 { margin: 4px 0 10px; color: var(--ui-head); font-size: 18px; }
+  .editor h4 { margin: 14px 0 6px; font-size: 15px; }
+  .editor label { display: block; font-size: 14px; margin: 6px 0; }
+  .editor input[type=text], .editor select { font: inherit; font-size: 16px; padding: 6px 8px; border: 2px solid var(--line); border-radius: 10px; background: var(--ui-surface); color: var(--ui-fg); }
+  .editor input[type=text] { width: 100%; }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 6px 0; }
+  .irow { display: flex; gap: 8px; align-items: flex-start; padding: 8px; border: 2px solid var(--ui-line2); border-radius: 12px; margin: 6px 0; background: var(--ui-row); }
+  .iconbtn { width: 64px; height: 64px; padding: 0; font-size: 64px; display: flex; align-items: center; justify-content: center; flex: none; overflow: hidden; background: #fff; }
+  .iconbtn .ic-emo { font-size: .6em; }
+  .ifields { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .ifields .sub { display: flex; gap: 4px; }
+  .ifields .sub input { flex: 1; min-width: 0; }
+  .ifields input.time { width: 80px; flex: none; }
+  .iops { display: flex; flex-direction: column; gap: 3px; }
+  .iops button { padding: 2px 8px; font-size: 13px; }
+  .swatches { display: flex; gap: 4px; flex-wrap: wrap; }
+  .swatches button { width: 24px; height: 24px; border-radius: 50%; padding: 0; }
+  .swatches button.active { outline: 3px solid var(--ui-fg); outline-offset: 1px; }
+  .tips { margin-top: 16px; background: var(--ui-tip); border-radius: 12px; padding: 10px 12px; font-size: 14px; line-height: 1.7; }
+  .tips b { color: var(--ui-head); }
+  .tips ul { margin: 4px 0 0; padding-left: 18px; }
+
+  /* ---- がめんで みせる ---- */
+  .show { position: fixed; inset: 0; z-index: 30; background: #222; overflow: auto; padding: calc(env(safe-area-inset-top, 0px) + 56px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px); }
+  .showbar { position: fixed; top: 0; left: 0; right: 0; z-index: 31; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px; background: rgba(0,0,0,.7); color: #fff; font-size: 13px; }
+  .showbar button { background: #fff; color: #333; border-color: #fff; }
+  .showin { margin: 0 auto; width: 100%; }
+  .showin.landscape { max-width: calc((100dvh - 80px) * 297 / 210); }
+  .showin.portrait { max-width: calc((100dvh - 80px) * 210 / 297); }
+  .showin .page { max-width: none; }
+
+  /* ---- いんさつ する ページ ---- */
+  .page { position: relative; background: #fff; color: #333; container-type: inline-size; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.15); border-radius: 6px; margin: 0 auto 18px; }
+  .page.portrait { aspect-ratio: 210 / 297; max-width: 600px; }
+  .page.landscape { aspect-ratio: 297 / 210; }
+  .pin { position: absolute; inset: 0; padding: 4cqw; display: flex; flex-direction: column; }
+  .ptitle { text-align: center; color: #e65100; font-weight: bold; font-size: 6.4cqw; line-height: 1.3; }
+  .landscape .ptitle { font-size: 4.6cqw; }
+  .pdate { text-align: right; color: #999; font-size: 2.8cqw; }
+  .landscape .pdate { font-size: 2cqw; }
+  .ic-emo { font-family: var(--emoji); line-height: 1; }
+  .slabel, .hlabel, .vlabel, .vnote, .ftlabel, .clabel, .ptitle { word-break: keep-all; overflow-wrap: anywhere; }
+  .ic-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ibox { width: var(--s); height: var(--s); font-size: var(--s); flex: none; display: flex; align-items: center; justify-content: center; background: #fff; border: .5cqw solid var(--c, #ccc); border-radius: 14%; overflow: hidden; }
+  .ibox .ic-emo { font-size: .7em; }
+
+  /* スケジュール たて */
+  .srows { flex: 1; display: flex; flex-direction: column; gap: 1.8cqw; margin-top: 1.5cqw; }
+  .checkhead { text-align: right; font-size: 2.6cqw; color: #999; margin: 1cqw 2cqw 0 0; }
+  .srow { display: flex; align-items: center; gap: 3cqw; height: var(--rh); background: var(--bg); border-left: 2.2cqw solid var(--c); border-radius: 2cqw; padding: 0 2.5cqw 0 2cqw; }
+  .srow .ibox { --s: calc(var(--rh) * 0.8); }
+  .slabel { flex: 1; font-size: min(7cqw, calc(var(--rh) * 0.32)); line-height: 1.25; }
+  .stime { width: 12cqw; flex: none; font-size: min(4.2cqw, calc(var(--rh) * 0.24)); color: #555; text-align: center; }
+  .scheck { width: calc(var(--rh) * 0.62); height: calc(var(--rh) * 0.62); flex: none; border: .6cqw dashed var(--c); border-radius: 50%; background: #fff; }
+  /* スケジュール よこ */
+  .hrows { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; }
+  .hrow { display: flex; align-items: center; justify-content: center; gap: .8cqw; }
+  .hcard { width: calc(var(--w) + 2cqw); background: var(--bg); border-top: 1.2cqw solid var(--c); border-radius: 1.6cqw; padding: 1cqw; display: flex; flex-direction: column; align-items: center; gap: .6cqw; }
+  .hcard .ibox { --s: var(--w); }
+  .hlabel { font-size: min(2.6cqw, calc(var(--w) * 0.17)); text-align: center; line-height: 1.25; }
+  .htime { font-size: min(2cqw, calc(var(--w) * 0.13)); color: #555; }
+  .hcard .scheck { width: calc(var(--w) * 0.36); height: calc(var(--w) * 0.36); }
+  .harrow { color: #c8c8c8; font-size: 2.2cqw; }
+  .hcard { position: relative; }
+  .hnum { position: absolute; top: -1.8cqw; left: -1.4cqw; width: calc(var(--w) * 0.3); height: calc(var(--w) * 0.3); border-radius: 50%; background: var(--c); color: #fff; border: .4cqw solid #fff; font-size: calc(var(--w) * 0.17); font-weight: bold; display: flex; align-items: center; justify-content: center; }
+  /* きもち ボード */
+  .fgrid { flex: 1; display: grid; grid-template-columns: repeat(var(--cols), 1fr); grid-auto-rows: 1fr; gap: 2.4cqw; margin-top: 2cqw; }
+  .fcell { background: var(--bg); border: .8cqw solid var(--c); border-radius: 3cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1cqw; min-height: 0; }
+  .fcell .ibox { --s: var(--is); border: none; background: transparent; }
+  .flabel { font-size: calc(var(--is) * 0.22); text-align: center; line-height: 1.2; word-break: keep-all; overflow-wrap: anywhere; }
+  /* かわったよ カード */
+  .card.change { background: repeating-linear-gradient(-45deg, #ffd54f 0 2.2cqw, #fff3c4 2.2cqw 4.4cqw); border-color: #f57f17; }
+  .card.change .ibox { background: #fff; border-radius: 50%; }
+  .card.change .clabel { background: #fff; border-radius: 4cqw; padding: .6cqw 2cqw; font-weight: bold; color: #e65100; }
+  /* ごほうび */
+  .rband { display: flex; align-items: center; justify-content: center; gap: 2cqw; margin-top: 1.5cqw; }
+  .rbox { display: flex; align-items: center; gap: 1.6cqw; background: var(--bg); border: .6cqw solid var(--c); border-radius: 2.4cqw; padding: 1cqw 2cqw; }
+  .rbox .ibox { --s: 11cqw; border: none; background: transparent; }
+  .rcap { font-size: 1.8cqw; color: #777; }
+  .rlabel { font-size: 3.2cqw; }
+  .rmid { text-align: center; color: #e65100; font-size: 2.6cqw; line-height: 1.4; }
+  .rmid b { font-size: 3.6cqw; }
+  .rgrid { flex: 1; display: grid; grid-template-columns: repeat(var(--cols), var(--d)); grid-auto-rows: var(--d); gap: 2cqw; justify-content: center; align-content: center; }
+  .rdot { border: .5cqw dashed #f9a825; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #e8d9b0; font-size: calc(var(--d) * 0.36); font-weight: bold; }
+  .rdot.last { border: .7cqw solid #f57f17; background: #fff8e1; color: #f57f17; }
+  /* こえの ものさし */
+  .vrow { flex: 1; display: flex; gap: 1.6cqw; margin-top: 1.5cqw; }
+  .vcol { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; background: #fafafa; border-radius: 2cqw; padding: 1.4cqw 1cqw; }
+  .vvis { height: 37cqw; width: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; }
+  .vicon { width: 1em; height: 1em; display: flex; align-items: center; justify-content: center; margin-bottom: .8cqw; border-radius: 50%; overflow: hidden; }
+  .vicon .ic-emo { font-size: .9em; }
+  .vbar { width: 80%; background: var(--c); border-radius: 1.4cqw 1.4cqw 0 0; display: flex; justify-content: center; color: #fff; font-size: 3.4cqw; font-weight: bold; padding-top: .5cqw; }
+  .vlabel { margin-top: 1.4cqw; font-size: 2.4cqw; background: #fff; border: .4cqw solid var(--c); border-radius: 5cqw; padding: .5cqw 1.4cqw; text-align: center; line-height: 1.3; }
+  .vnote { margin-top: 1cqw; font-size: 2cqw; color: #555; text-align: center; line-height: 1.4; }
+  /* まず・つぎ */
+  .ftrow { position: absolute; inset: 4cqw; display: flex; align-items: center; gap: 2.5cqw; }
+  .ftbox { flex: 1; height: 100%; border: 1cqw solid var(--c); border-radius: 3cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.4cqw; }
+  .fthead { background: var(--c); color: #fff; font-size: 5cqw; padding: .6cqw 5cqw; border-radius: 6cqw; }
+  .ftbox .ibox { --s: 27cqw; border: none; }
+  .ftlabel { font-size: 5cqw; text-align: center; }
+  .ftarrow { color: #f08a24; font-size: 7cqw; }
+  /* カード */
+  .cgrid { position: absolute; inset: 4cqw; display: grid; grid-template-columns: repeat(var(--cols), 1fr); grid-template-rows: repeat(var(--rows), 1fr); }
+  .ccell { border: .25cqw dashed #c4c4c4; display: flex; align-items: center; justify-content: center; padding: 1.6cqw; margin: -.125cqw; }
+  .card { width: 100%; height: 100%; background: var(--bg); border: .9cqw solid var(--c); border-radius: 3cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1cqw; }
+  .card .ibox { --s: calc(var(--cw) * 0.6); border: none; background: transparent; }
+  .clabel { font-size: calc(var(--cw) * 0.11); text-align: center; line-height: 1.2; padding: 0 1cqw; }
+
+  /* シール ようし */
+  .lab { position: absolute; }
+  .lab .lin { position: absolute; inset: var(--pad); border-radius: var(--rad); background: var(--bg); display: flex; flex-direction: var(--dir); align-items: center; justify-content: center; gap: var(--gap); overflow: hidden; }
+  .lab.round .lin { border-radius: 50%; }
+  .lab .ibox { --s: var(--is); border: none; background: transparent; }
+  .ltext { max-width: var(--tw); font-size: var(--fs); line-height: 1.2; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
+  .guide { position: absolute; border: .15cqw dashed #9e9e9e; border-radius: var(--grad); pointer-events: none; }
+  .lspec { font-size: 13px; color: var(--ui-muted); background: var(--ui-soft); border-radius: 10px; padding: 8px 10px; line-height: 1.6; }
+  .numrow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 10px; }
+  .numrow label { margin: 2px 0; }
+  .numrow input { width: 100%; font: inherit; font-size: 15px; padding: 4px 6px; border: 2px solid var(--line); border-radius: 8px; background: var(--ui-surface); color: var(--ui-fg); }
+
+  /* えらぶ まど */
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 20; display: flex; align-items: center; justify-content: center; padding: 12px; }
+  .modal[hidden] { display: none; }
+  .mbox { background: var(--ui-surface); border-radius: 18px; width: min(680px, 100%); max-height: 90vh; overflow: auto; padding: 14px; }
+  .mhead { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: var(--ui-head); margin-bottom: 8px; }
+  .mtabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+  .mtabs button { font-size: 14px; padding: 6px 10px; }
+  .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
+  .mgrid button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; font-size: 13px; }
+  .mgrid .ic-emo { font-size: 34px; display: block; height: 42px; line-height: 42px; }
+  .photo { display: block; margin-top: 12px; padding: 10px; border: 2px dashed var(--line); border-radius: 12px; font-size: 15px; }
+
+  @media print {
+    header, .editor, #status, .modal, .show { display: none !important; }
+    body { background: #fff; }
+    main { display: block; padding: 0; }
+    .page { box-shadow: none; border-radius: 0; margin: 0; max-width: none; break-after: page; page-break-after: always; }
+    .page:last-child { break-after: auto; page-break-after: auto; }
+    .page.portrait { width: 210mm; height: 297mm; aspect-ratio: auto; }
+    .page.landscape { width: 297mm; height: 210mm; aspect-ratio: auto; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="group" id="tabs">
+    <button data-tab="schedule">📅 スケジュール</button>
+    <button data-tab="steps">🔢 てじゅん</button>
+    <button data-tab="firstThen">➡ まず・つぎ</button>
+    <button data-tab="voice">🔊 こえの ものさし</button>
+    <button data-tab="feel">😊 きもち ボード</button>
+    <button data-tab="change">🔄 かわったよ</button>
+    <button data-tab="reward">⭐ ごほうび</button>
+    <button data-tab="cards">🃏 えカード</button>
+    <button data-tab="label">🏷 シール ようし</button>
+  </div>
+  <div class="group">
+    <button id="undo">↩ もどす</button>
+    <button id="showBtn">📺 みせる</button>
+    <button id="print" class="primary">🖨 いんさつ</button>
+    <button id="printFile" class="primary" hidden>🖨 いんさつ よう ファイル</button>
+    <button id="saveFile">💾 ファイルに ほぞん</button>
+    <button id="openFile">📂 ファイルを ひらく</button>
+    <input type="file" id="openInput" accept=".json,.txt,application/json,text/plain" hidden>
+  </div>
+</header>
+<div id="status"></div>
+<main>
+  <section class="editor" id="editor"></section>
+  <section class="preview" id="preview"></section>
+</main>
+
+<div class="show" id="show" hidden>
+  <div class="showbar"><span>スマホを よこに すると おおきく みえます</span><button id="showClose">✕ とじる</button></div>
+  <div class="showin" id="showIn"></div>
+</div>
+
+<div class="modal" id="picker" hidden>
+  <div class="mbox">
+    <div class="mhead"><span>えを えらぶ</span><button data-act="close">とじる</button></div>
+    <div class="mtabs" id="mtabs"></div>
+    <div class="mgrid" id="mgrid"></div>
+    <label class="photo">📷 しゃしんを つかう（スマホなら その ばで さつえいも できます）<br><input type="file" accept="image/*" id="photoInput"></label>
+  </div>
+</div>
+
+<script>
+(() => {
+  // どこで うごく か：'pc'（パソコンの ファイル）／'pwa'（スマホの アプリ）／'artifact'（claude.ai の Webページ）
+  const APP_MODE = 'pwa';
+  const PHONE_BUILD = APP_MODE === 'artifact';
+  const KEY = 'shikaku-cards-v1';
+  // しゅるいごとに おなじ いろ（さがしやすく するため）
+  const CATS = {
+    life:   { name: 'せいかつ', color: '#43a047', bg: '#e8f5e9' },
+    food:   { name: 'たべる', color: '#fb8c00', bg: '#fff3e0' },
+    play:   { name: 'あそぶ', color: '#1e88e5', bg: '#e3f2fd' },
+    out:    { name: 'おでかけ', color: '#8e24aa', bg: '#f3e5f5' },
+    school: { name: 'ひまわり・がっこう', color: '#e91e63', bg: '#fce4ec' },
+    feel:   { name: 'きもち・つたえる', color: '#f9a825', bg: '#fffde7' },
+    animal: { name: 'どうぶつ', color: '#6d4c41', bg: '#efebe9' },
+    mark:   { name: 'しるし・ごほうび', color: '#f57f17', bg: '#fff8e1' },
+    other:  { name: 'そのほか', color: '#757575', bg: '#f5f5f5' },
+  };
+  // Windows 10 でも でる えもじ だけ
+  const LIB = {
+    life: [['🚽','トイレ'],['🧼','てを あらう'],['🦷','はみがき'],['🛁','おふろ'],['👕','きがえ'],['🧦','くつした'],['👟','くつを はく'],['🛏️','ねる'],['💊','くすり'],['🧹','おかたづけ'],['🎒','かばん'],['🧢','ぼうし'],
+      ['🚰','みずを だす'],['👐','ごしごし'],['💧','ながす'],['🤲','ふく'],['🧻','トイレットペーパー'],['👚','パジャマ'],['👖','ズボン'],['🧥','うわぎ']],
+    food: [['🍚','ごはん'],['🍞','パン'],['🍙','おにぎり'],['🥛','ぎゅうにゅう'],['🧃','ジュース'],['🍪','おやつ'],['🍎','りんご'],['🍌','バナナ'],['🍓','いちご'],['🍽️','いただきます'],['🍱','おべんとう'],['🍦','アイス']],
+    play: [['🧸','おもちゃ'],['🧱','ブロック'],['🧩','パズル'],['📚','えほん'],['🎨','おえかき'],['📺','テレビ'],['📱','タブレット'],['🎵','うた'],['⚽','ボール'],['🎠','ゆうぐ'],['🚂','でんしゃ あそび'],['🎈','ふうせん']],
+    out: [['🚶','おさんぽ'],['🚗','くるま'],['🚌','バス'],['🚃','でんしゃ'],['🛒','かいもの'],['🏞️','こうえん'],['🏥','びょういん'],['💈','とこや'],['🏠','おうち'],['👵','おばあちゃんち'],['🚑','きゅうきゅうしゃ'],['🚒','しょうぼうしゃ']],
+    school: [['🌻','ひまわり'],['🏫','がっこう'],['👋','あいさつ'],['🤸','うんどう'],['🎶','おうた'],['✂️','こうさく'],['👩‍🏫','せんせい'],['👫','おともだち'],['🪑','すわる'],['🙌','できた！'],['🚸','とうえん'],['🎉','たのしみ']],
+    feel: [['😊','うれしい'],['😢','かなしい'],['😠','おこってる'],['😨','こわい'],['😴','ねむい'],['🤕','いたい'],['🙋','てつだって'],['✋','まってね'],['🤫','しずかに'],['🙆','いいよ'],['🙅','ストップ'],['🤝','かして'],['👂','きいてね'],['👀','みてね'],['🤐','おくち チャック']],
+    animal: [['🐭','ねずみ'],['🐱','ねこ'],['🐶','いぬ'],['🦁','ライオン'],['🐘','ぞう'],['🐰','うさぎ'],['🐻','くま'],['🐦','ことり'],['🐟','さかな'],['🐢','かめ'],['🐸','かえる'],['🐵','さる']],
+    mark: [['🔄','かわったよ'],['❌','ちゅうし'],['⏰','あとでね'],['☔','あめ'],['🏠','おやすみ'],['❓','まだ わからない'],
+      ['⭐','ほし'],['🎁','プレゼント'],['🏆','できた！'],['👍','いいね'],['💮','よく できました'],['🎖️','がんばったね']],
+  };
+  // ラベル用紙（mm）。エーワン公式サイトの「フォーマット番号」で同じ配置の品番をまとめ、
+  // 寸法は LibreOffice のラベル定義（extras/source/labels/labels.xml）の同フォーマット品の値。
+  const LABELS = [
+    { id: 'F12A4-1', products: '72212・31333・28362・28382', cols: 2, rows: 6, w: 86.4, h: 42.3, left: 18.6, top: 21.2, px: 86.4, py: 42.3 },
+    { id: 'F10A4-2', products: '72210・31339・28367・28387', cols: 2, rows: 5, w: 86.4, h: 50.8, left: 18.6, top: 21.2, px: 86.4, py: 50.8 },
+    { id: 'F18A4-2', products: '72218・28370・28390', cols: 3, rows: 6, w: 63.5, h: 46.5, left: 7.2, top: 9.0, px: 66.05, py: 46.5 },
+    { id: 'F21A4-3', products: '72221・28379・28399', cols: 3, rows: 7, w: 63.5, h: 38.1, left: 7.2, top: 15.2, px: 66.05, py: 38.1 },
+    { id: 'F24A4-3', products: '72224・28369・28389', cols: 3, rows: 8, w: 66, h: 33.9, left: 6.0, top: 12.9, px: 66, py: 33.9 },
+    { id: 'F44A4-1', products: '72244・28368・28388', cols: 4, rows: 11, w: 48.3, h: 25.4, left: 8.4, top: 8.8, px: 48.3, py: 25.4 },
+    { id: 'F18A4-1', products: '31335・28364・28384', cols: 3, rows: 6, w: 70, h: 42.3, left: 0, top: 21.2, px: 70, py: 42.3 },
+    { id: 'F21A4-1', products: '31337・28365', cols: 3, rows: 7, w: 70, h: 38.1, left: 0, top: 14.8, px: 70, py: 38.1 },
+    { id: 'F21A4-2', products: '28363・28383', cols: 3, rows: 7, w: 70, h: 42.3, left: 0, top: 0, px: 70, py: 42.3 },
+    { id: 'F24A4-1', products: '28366・28386', cols: 3, rows: 8, w: 70, h: 33.9, left: 0, top: 12.7, px: 70, py: 33.9 },
+    { id: 'F20A4-3', products: '72220・28204・28764', cols: 5, rows: 4, w: 42, h: 74.25, left: 0, top: 0, px: 42, py: 74.25 },
+    { id: 'F4A4-1', products: '72204・28271・28766', cols: 2, rows: 2, w: 105, h: 148.5, left: 0, top: 0, px: 105, py: 148.5 },
+    { id: 'F2A4-6', products: '72202', cols: 1, rows: 2, w: 210, h: 148.5, left: 0, top: 0, px: 210, py: 148.5 },
+    { id: 'F1A4-1', products: '72201', cols: 1, rows: 1, w: 210, h: 297, left: 0, top: 0, px: 210, py: 297 },
+  ];
+  // てじゅんの ひながた
+  const STEP_PRESETS = {
+    wash: ['てを あらう', [['🚰','みずを だす'],['🧼','せっけん'],['👐','ごしごし'],['💧','みずで ながす'],['🤲','タオルで ふく'],['🙌','ぴかぴか！']]],
+    teeth: ['はみがき', [['🥛','コップに みず'],['🦷','まえば ごしごし'],['🦷','おくば ごしごし'],['💧','ぶくぶく ぺー'],['🙌','ぴかぴか！']]],
+    dress: ['おきがえ', [['👚','パジャマを ぬぐ'],['👕','シャツを きる'],['👖','ズボンを はく'],['🧦','くつしたを はく'],['🙌','できた！']]],
+    toilet: ['トイレ', [['🚽','トイレに いく'],['👖','ズボンを おろす'],['🚽','すわる'],['🧻','ふく'],['💧','ながす'],['🧼','てを あらう']]],
+  };
+  const VCOLORS = ['#90caf9', '#64b5f6', '#81c784', '#aed581', '#ffd54f', '#ffb74d', '#e57373', '#ba68c8'];
+
+  const $ = (s) => document.querySelector(s);
+  const editorEl = $('#editor'), previewEl = $('#preview'), statusEl = $('#status');
+  const uid = () => Math.random().toString(36).slice(2, 9);
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const it = (v, label, cat, time = '') => ({ id: uid(), icon: { t: 'emoji', v }, label, cat, time });
+  const lv = (v, label, note, color) => ({ id: uid(), icon: { t: 'emoji', v }, label, note, color });
+
+  function defaults() {
+    return {
+      tab: 'schedule',
+      schedule: {
+        title: 'きょうの よてい', orient: 'v', showTime: false, showCheck: true,
+        items: [it('🍚', 'あさごはん', 'food', '7:00'), it('🦷', 'はみがき', 'life', '7:30'), it('👕', 'きがえ', 'life', '7:45'),
+          it('🚗', 'くるま', 'out', '8:30'), it('🌻', 'ひまわり', 'school', '9:00'), it('🚶', 'おさんぽ', 'out', '10:00'), it('🏠', 'おうちに かえる', 'out', '14:00')],
+      },
+      voice: {
+        title: 'こえの ものさし',
+        levels: [lv('🐭', 'ねずみさんの こえ', 'ないしょばなし・としょかん', '#64b5f6'), lv('🐱', 'ねこさんの こえ', 'となりの ひとと おはなし', '#81c784'),
+          lv('🐶', 'いぬさんの こえ', 'みんなの まえで はっぴょう', '#ffb74d'), lv('🦁', 'ライオンさんの こえ', 'おそとで あそぶ とき', '#e57373')],
+      },
+      firstThen: { firstWord: 'まず', thenWord: 'つぎは', first: it('🚶', 'おさんぽ', 'out'), then: it('🧃', 'ジュース', 'food') },
+      steps: { title: 'てを あらう', showCheck: false, items: STEP_PRESETS.wash[1].map(([v, l]) => it(v, l, 'life')) },
+      feel: {
+        title: 'いまの きもちは？',
+        items: [it('😊', 'うれしい', 'feel'), it('😢', 'かなしい', 'feel'), it('😠', 'おこってる', 'feel'), it('😨', 'こわい', 'feel'),
+          it('😴', 'ねむい', 'feel'), it('🤕', 'いたい', 'feel'), it('🙋', 'てつだって', 'feel'), it('✋', 'まってね', 'feel'), it('🚽', 'トイレ', 'life')],
+      },
+      change: {
+        size: 'm',
+        items: [it('🔄', 'かわったよ', 'mark'), it('❌', 'ちゅうし', 'mark'), it('⏰', 'あとでね', 'mark'),
+          it('🏠', 'きょうは おやすみ', 'mark'), it('☔', 'あめで ちゅうし', 'mark'), it('❓', 'まだ わからない', 'mark')],
+      },
+      label: {
+        preset: 'F24A4-3', mode: 'repeat', start: 1, offX: 0, offY: 0, outline: false, color: true,
+        custom: { cols: 3, rows: 8, w: 66, h: 33.9, left: 6, top: 12.9, px: 66, py: 33.9, round: false },
+        items: [it('⭐', 'がんばったね', 'mark'), it('💮', 'よく できました', 'mark')],
+      },
+      reward: { title: 'がんばり シート', count: 10, task: it('🚶', 'おさんぽ', 'out'), prize: it('🍦', 'アイス', 'food') },
+      cards: {
+        size: 'm',
+        items: [it('🍚', 'ごはん', 'food'), it('🚽', 'トイレ', 'life'), it('🧼', 'てを あらう', 'life'), it('🚶', 'おさんぽ', 'out'), it('🧸', 'おもちゃ', 'play'),
+          it('📚', 'えほん', 'play'), it('🙋', 'てつだって', 'feel'), it('✋', 'まってね', 'feel'), it('😊', 'うれしい', 'feel')],
+      },
+    };
+  }
+
+  const storageOK = (() => { try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); return true; } catch (e) { return false; } })();
+  function load() {
+    if (storageOK) {
+      try { const raw = localStorage.getItem(KEY); if (raw) return Object.assign(defaults(), JSON.parse(raw)); } catch (e) { /* さいしょから */ }
+    }
+    return defaults();
+  }
+  let state = load();
+  const undoStack = [];
+  let editing = false;
+  let pickPath = null, pickCat = 'life';
+
+  function persist() {
+    if (!storageOK) return;
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch (e) { say('ブラウザに ほぞん できませんでした（しゃしんが おおい かも）。「ファイルに ほぞん」を つかってください。', true); }
+  }
+  function commit() { undoStack.push(JSON.stringify(state)); if (undoStack.length > 80) undoStack.shift(); }
+  function say(msg, warn) { statusEl.textContent = msg || ''; statusEl.classList.toggle('warn', !!warn); }
+  function get(path) { return path.split('.').reduce((o, k) => (o == null ? o : o[k]), state); }
+  function changed() { renderEditor(); renderPreview(); persist(); }
+
+  // ---------- え ----------
+  function iconHtml(icon) {
+    if (!icon) return '';
+    if (icon.t === 'img') return `<img class="ic-img" src="${esc(icon.v)}" alt="">`;
+    return `<span class="ic-emo">${esc(icon.v)}</span>`;
+  }
+  const catOf = (k) => CATS[k] || CATS.other;
+  const catStyle = (k) => `--c:${catOf(k).color};--bg:${catOf(k).bg}`;
+
+  // ---------- いんさつ ページ ----------
+  function schedulePages(d) {
+    const n = d.items.length;
+    const head = `<div class="ptitle">${esc(d.title)}</div><div class="pdate">　　がつ　　にち（　　）</div>`;
+    if (d.orient === 'v') {
+      const rh = Math.max(6, Math.min(24, (d.showCheck ? 108 : 112) / Math.max(1, n) - 1.8));
+      const rows = d.items.map((x) => `<div class="srow" style="${catStyle(x.cat)}">
+          ${d.showTime ? `<div class="stime">${esc(x.time)}</div>` : ''}
+          <div class="ibox">${iconHtml(x.icon)}</div>
+          <div class="slabel">${esc(x.label)}</div>
+          ${d.showCheck ? '<div class="scheck"></div>' : ''}</div>`).join('');
+      return { orient: 'portrait', html: `<div class="page portrait" style="--rh:${rh.toFixed(2)}cqw"><div class="pin">${head}
+        ${d.showCheck ? '<div class="checkhead">おわったら ✔</div>' : ''}<div class="srows">${rows}</div></div></div>` };
+    }
+    return { orient: 'landscape', html: hPage(head, d.items, d) };
+  }
+  // よこ ならびの ページ（スケジュール よこ・てじゅん）
+  function hPage(head, items, o) {
+    const n = items.length;
+    const one = o.oneRowMax || 6;
+    const perRow = n <= one ? n : Math.ceil(n / 2), nRows = n <= one ? 1 : 2;
+    let w = Math.min(22, (92 - (perRow - 1) * 3.4) / Math.max(1, perRow) - 2);
+    w = Math.min(w, (52 / nRows - 8.5 - (o.showTime ? 3 : 0)) / (1 + (o.showCheck ? 0.36 : 0)));
+    const chunks = [items.slice(0, perRow), items.slice(perRow)].filter((c) => c.length);
+    const rows = chunks.map((c, r) => `<div class="hrow">${c.map((x, j) => `${j ? '<div class="harrow">▶</div>' : ''}
+        <div class="hcard" style="${catStyle(x.cat)}">
+          ${o.numbered ? `<div class="hnum">${r * perRow + j + 1}</div>` : ''}
+          ${o.showTime ? `<div class="htime">${esc(x.time)}</div>` : ''}
+          <div class="ibox">${iconHtml(x.icon)}</div>
+          <div class="hlabel">${esc(x.label)}</div>
+          ${o.showCheck ? '<div class="scheck"></div>' : ''}</div>`).join('')}</div>`).join('');
+    return `<div class="page landscape" style="--w:${w.toFixed(2)}cqw"><div class="pin">${head}<div class="hrows">${rows}</div></div></div>`;
+  }
+  function stepsPages(d) {
+    return { orient: 'landscape', html: hPage(`<div class="ptitle">${esc(d.title)}</div>`, d.items, { numbered: true, showCheck: d.showCheck, oneRowMax: 4 }) };
+  }
+  function feelPages(d) {
+    const n = Math.max(1, d.items.length);
+    const cols = n <= 4 ? 2 : n <= 9 ? 3 : 4, rows = Math.ceil(n / cols);
+    const cellH = (124 - (rows - 1) * 2.4) / rows, cellW = (92 - (cols - 1) * 2.4) / cols;
+    const is = Math.min(cellW * 0.62, cellH * 0.6);
+    const cells = d.items.map((x) => `<div class="fcell" style="${catStyle(x.cat)}"><div class="ibox">${iconHtml(x.icon)}</div><div class="flabel">${esc(x.label)}</div></div>`).join('');
+    return { orient: 'portrait', html: `<div class="page portrait" style="--cols:${cols};--is:${is.toFixed(2)}cqw"><div class="pin"><div class="ptitle">${esc(d.title)}</div><div class="fgrid">${cells}</div></div></div>` };
+  }
+  function rewardPages(d) {
+    const c = Math.max(1, +d.count || 10);
+    const cols = c <= 6 ? c : c <= 12 ? Math.ceil(c / 2) : c <= 18 ? Math.ceil(c / 3) : Math.ceil(c / 4);
+    const rows = Math.ceil(c / cols);
+    const dsz = Math.min(15, (88 - (cols - 1) * 2) / cols, (33 - (rows - 1) * 2) / rows);
+    let dots = '';
+    for (let i = 1; i <= c; i++) dots += `<div class="rdot ${i === c ? 'last' : ''}">${i === c ? '★' : i}</div>`;
+    const box = (cap, x) => `<div class="rbox" style="${catStyle(x.cat)}"><div class="ibox">${iconHtml(x.icon)}</div><div><div class="rcap">${cap}</div><div class="rlabel">${esc(x.label)}</div></div></div>`;
+    return { orient: 'landscape', html: `<div class="page landscape" style="--cols:${cols};--d:${dsz.toFixed(2)}cqw"><div class="pin">
+      <div class="ptitle">${esc(d.title)}</div>
+      <div class="rband">${box('がんばること', d.task)}<div class="rmid">シールが<br><b>${c}こ</b><br>たまったら ▶</div>${box('ごほうび', d.prize)}</div>
+      <div class="rgrid">${dots}</div></div></div>` };
+  }
+  function voicePages(d) {
+    const n = d.levels.length;
+    const cols = d.levels.map((l, i) => {
+      const t = n > 1 ? i / (n - 1) : 1;
+      const s = 7 + t * 10, bh = 4 + ((i + 1) / n) * 14;
+      return `<div class="vcol" style="--c:${l.color}">
+        <div class="vvis"><div class="vicon" style="font-size:${s.toFixed(2)}cqw">${iconHtml(l.icon)}</div>
+          <div class="vbar" style="height:${bh.toFixed(2)}cqw">${i + 1}</div></div>
+        <div class="vlabel">${esc(l.label)}</div><div class="vnote">${esc(l.note)}</div></div>`;
+    }).join('');
+    return { orient: 'landscape', html: `<div class="page landscape"><div class="pin"><div class="ptitle">${esc(d.title)}</div><div class="vrow">${cols}</div></div></div>` };
+  }
+  function firstThenPages(d) {
+    const box = (word, x, c) => `<div class="ftbox" style="--c:${c}"><div class="fthead">${esc(word)}</div>
+      <div class="ibox">${iconHtml(x.icon)}</div><div class="ftlabel">${esc(x.label)}</div></div>`;
+    return { orient: 'landscape', html: `<div class="page landscape"><div class="ftrow">${box(d.firstWord, d.first, '#1e88e5')}<div class="ftarrow">▶</div>${box(d.thenWord, d.then, '#43a047')}</div></div>` };
+  }
+  function labelSpec(d) {
+    if (d.preset === 'custom') {
+      const c = d.custom, n = (v, def) => (isFinite(parseFloat(v)) ? parseFloat(v) : def);
+      const w = Math.max(5, n(c.w, 50)), h = Math.max(5, n(c.h, 30));
+      return { id: 'custom', cols: Math.max(1, Math.round(n(c.cols, 1))), rows: Math.max(1, Math.round(n(c.rows, 1))), w, h,
+        left: n(c.left, 0), top: n(c.top, 0), px: n(c.px, w), py: n(c.py, h), round: !!c.round };
+    }
+    return LABELS.find((l) => l.id === d.preset) || LABELS[0];
+  }
+  function labelCell(L, x, pos, ox, oy, color) {
+    const k = 100 / 210, f = (v) => (v * k).toFixed(3) + 'cqw';
+    const c = pos % L.cols, r = Math.floor(pos / L.cols);
+    const X = L.left + c * L.px + ox, Y = L.top + r * L.py + oy;
+    const pad = Math.min(1.5, Math.min(L.w, L.h) * 0.06);
+    const iw = L.w - 2 * pad, ih = L.h - 2 * pad;
+    const text = String(x.label || '').trim();
+    // スペースの ところで だけ かいぎょう する ので、いちばん ながい ことばと ぎょうすうで もじの おおきさを きめる
+    const words = text ? text.split(/\s+/) : [], longest = Math.max(1, ...words.map((w) => [...w].length)), lines = Math.max(1, words.length);
+    const fit = (cap, width, height) => Math.min(cap, width / longest, height / lines / 1.25);
+    let dir = 'column', is, fs = 0, tw = iw;
+    const gap = Math.min(iw, ih) * 0.05;
+    if (L.round) { const D = Math.min(iw, ih); is = text ? D * 0.5 : D * 0.7; tw = D * 0.75; fs = fit(D * 0.16, tw, D * 0.32); }
+    else if (!text) { is = Math.min(iw, ih) * 0.8; }
+    else if (iw / ih >= 1.45) { dir = 'row'; is = ih * 0.78; tw = iw - is - gap - 2; fs = fit(ih * 0.3, tw, ih * 0.9); }
+    else { is = Math.min(iw * 0.75, ih * 0.6); tw = iw * 0.95; fs = fit(ih * 0.16, tw, ih - is - gap); }
+    const bg = color ? catOf(x.cat).bg : '#fff';
+    const rad = Math.min(3, Math.min(L.w, L.h) * 0.12);
+    return `<div class="lab ${L.round ? 'round' : ''}" style="left:${f(X)};top:${f(Y)};width:${f(L.w)};height:${f(L.h)};--pad:${f(pad)};--rad:${f(rad)};--bg:${bg};--dir:${dir};--gap:${f(gap)};--is:${f(is)};--fs:${f(fs)};--tw:${f(tw)}">
+      <div class="lin"><div class="ibox">${iconHtml(x.icon)}</div>${text ? `<div class="ltext">${esc(text)}</div>` : ''}</div></div>`;
+  }
+  function labelPages(d) {
+    const L = labelSpec(d), per = L.cols * L.rows, k = 100 / 210, f = (v) => (v * k).toFixed(3) + 'cqw';
+    const start = Math.min(per, Math.max(1, Math.round(parseFloat(d.start) || 1))) - 1;
+    const items = d.items;
+    let seq = [];
+    if (items.length) {
+      if (d.mode === 'repeat') for (let i = 0; i < per - start; i++) seq.push(items[i % items.length]);
+      else seq = items.slice();
+    }
+    const ox = parseFloat(d.offX) || 0, oy = parseFloat(d.offY) || 0;
+    const pages = [];
+    let idx = 0, first = true;
+    do {
+      const slots = [];
+      for (let pos = first ? start : 0; pos < per && idx < seq.length; pos++) slots.push([pos, seq[idx++]]);
+      pages.push(slots);
+      first = false;
+    } while (idx < seq.length);
+    const html = pages.map((slots) => {
+      let h = '';
+      for (let pos = 0; pos < per; pos++) {
+        const c = pos % L.cols, r = Math.floor(pos / L.cols);
+        h += `<div class="guide ${d.outline ? '' : 'no-print'}" style="left:${f(L.left + c * L.px + ox)};top:${f(L.top + r * L.py + oy)};width:${f(L.w)};height:${f(L.h)};--grad:${L.round ? '50%' : f(1.5)}"></div>`;
+      }
+      slots.forEach(([pos, x]) => { h += labelCell(L, x, pos, ox, oy, d.color); });
+      return `<div class="page portrait">${h}</div>`;
+    }).join('');
+    return { orient: 'portrait', html };
+  }
+  function changePages(d) { return cardPages(d, 'change'); }
+  function cardPages(d, variant = '') {
+    const cols = { l: 2, m: 3, s: 4 }[d.size] || 3, rows = { l: 3, m: 4, s: 5 }[d.size] || 4, per = cols * rows;
+    const cw = 92 / cols;
+    let html = '';
+    for (let p = 0; p < Math.max(1, Math.ceil(d.items.length / per)); p++) {
+      const cells = d.items.slice(p * per, (p + 1) * per).map((x) => `<div class="ccell"><div class="card ${variant}" style="${catStyle(x.cat)}">
+        <div class="ibox">${iconHtml(x.icon)}</div><div class="clabel">${esc(x.label)}</div></div></div>`).join('');
+      html += `<div class="page portrait" style="--cols:${cols};--rows:${rows};--cw:${cw.toFixed(2)}cqw"><div class="cgrid">${cells}</div></div>`;
+    }
+    return { orient: 'portrait', html };
+  }
+  const PAGES = { schedule: schedulePages, steps: stepsPages, voice: voicePages, firstThen: firstThenPages, feel: feelPages, change: changePages, reward: rewardPages, cards: (d) => cardPages(d), label: labelPages };
+  function renderPreview() {
+    const r = PAGES[state.tab](state[state.tab]);
+    previewEl.innerHTML = r.html;
+    $('#pagesize').textContent = `@page { size: A4 ${r.orient}; margin: 0; }`;
+  }
+
+  // ---------- へんしゅう パネル ----------
+  function catSelect(path, cur) {
+    return `<select data-path="${path}" data-field="cat">${Object.entries(CATS).map(([k, c]) => `<option value="${k}" ${k === cur ? 'selected' : ''}>■ ${c.name}</option>`).join('')}</select>`;
+  }
+  function ops(list, i) {
+    return `<div class="iops"><button data-act="up" data-list="${list}" data-i="${i}" title="うえへ">▲</button>
+      <button data-act="down" data-list="${list}" data-i="${i}" title="したへ">▼</button>
+      <button data-act="del" data-list="${list}" data-i="${i}" title="けす">✕</button></div>`;
+  }
+  function itemRow(path, x, o = {}) {
+    return `<div class="irow">
+      <button class="iconbtn" data-act="pick" data-path="${path}" title="えを かえる">${iconHtml(x.icon)}</button>
+      <div class="ifields">
+        <div class="sub">${o.time ? `<input type="text" class="time" data-path="${path}" data-field="time" value="${esc(x.time)}" placeholder="じかん">` : ''}
+          <input type="text" data-path="${path}" data-field="label" value="${esc(x.label)}" placeholder="ことば（ひらがな）"></div>
+        ${o.note ? `<input type="text" data-path="${path}" data-field="note" value="${esc(x.note)}" placeholder="どんな とき・どこで">` : ''}
+        ${o.cat ? catSelect(path, x.cat) : ''}
+        ${o.color ? `<div class="swatches">${VCOLORS.map((c) => `<button data-act="color" data-path="${path}" data-v="${c}" style="background:${c}" class="${c === x.color ? 'active' : ''}" aria-label="いろ"></button>`).join('')}</div>` : ''}
+      </div>
+      ${o.list ? ops(o.list, o.i) : ''}</div>`;
+  }
+  const seg = (path, field, cur, opts) => `<div class="row">${opts.map(([v, l]) => `<button data-act="set" data-path="${path}" data-field="${field}" data-v="${v}" class="${v === cur ? 'active' : ''}">${l}</button>`).join('')}</div>`;
+
+  const TIPS = {
+    schedule: `<b>つかいかたの ヒント</b><ul>
+      <li>1日の よていを <b>いちらんで ぜんぶ みえる</b> ように します。1まいずつ みせるより わかりやすいと されています。</li>
+      <li>おわったら チェックや シールで「おしまい」を みえる ように。</li>
+      <li>カードを みせる ときは、<b>ことばでも かならず つたえます</b>。</li>
+      <li>よていが かわったら、もとの カードを だまって はずさず、「かわったよ」の カードを かさねて みせます。</li>
+      <li>おなじ しゅるいは おなじ いろ（せいかつ＝みどり、たべる＝オレンジ…）に すると さがしやすく なります。</li></ul>`,
+    voice: `<b>つかいかたの ヒント</b><ul>
+      <li>「うるさい」「だめ」ではなく、<b>「ねこさんの こえで はなそうね」</b>と、して ほしい こえを ゆびさして つたえます。</li>
+      <li>いえで あそびながら「ねずみさんの こえ」「ライオンさんの こえ」を いっしょに だして れんしゅう すると、ちがいが わかりやすく なります。</li>
+      <li>でかける まえに「こんどの ばしょは ねずみさん」と よこくして おくと、その ばで つたえやすく なります。</li>
+      <li>いまの こえに せんたくばさみや クリップを つけて しめす つかいかたも できます。</li></ul>`,
+    firstThen: `<b>つかいかたの ヒント</b><ul>
+      <li>「まず」に すこし がんばる こと、「つぎ」に たのしみな ことを いれます。</li>
+      <li>「まず」が おわったら、すぐに「つぎ」を まもります。やくそくが まもられる ことで しんらいが うまれます。</li>
+      <li>スケジュールより みじかい ので、きりかえが にがてな ときの さいしょの いっぽに むいています。</li></ul>`,
+    cards: `<b>つかいかたの ヒント</b><ul>
+      <li>え の したには <b>ひらがなを そえます</b>。ことばかけが そろい、もじに ふれる きっかけにも なります。</li>
+      <li>てんせんで きって、ラミネートや マジックテープで スケジュールボードに はれます。</li>
+      <li>「てつだって」「まってね」など、<b>じぶんから つたえる</b> ための カードも おすすめです。</li>
+      <li>しゃしんを つかうと、じっさいの ものと むすびつけやすく なります。</li></ul>`,
+    steps: `<b>つかいかたの ヒント</b><ul>
+      <li>てあらい・はみがきなど、<b>まいにち おなじ じゅんばんで する こと</b>に むいています。うえの「ひながた」から えらべます。</li>
+      <li>せんめんじょや トイレの かべなど、<b>その ばしょで みえる ところ</b>に はります。</li>
+      <li>さいしょは いっしょに ゆびさしながら「つぎは せっけん」と ことばでも つたえ、だんだん ひとりで できる ように します。</li>
+      <li>じっさいの せっけんや タオルの しゃしんに かえると、もっと わかりやすく なります。</li></ul>`,
+    feel: `<b>つかいかたの ヒント</b><ul>
+      <li>ことばで いいにくい ときに、<b>ゆびさしで つたえられる</b> ボードです。</li>
+      <li>おとなも「いま ママは うれしい」と ゆびさして みせると、つかいかたが つたわります。</li>
+      <li>ゆびさして くれたら「かなしかったんだね」と ことばに して かえします。</li>
+      <li>「てつだって」「まってね」「トイレ」など、<b>つたえたい こと</b>も いっしょに ならべて おくと べんりです。</li></ul>`,
+    change: `<b>つかいかたの ヒント</b><ul>
+      <li>よていが かわった とき、もとの カードを <b>だまって はずさず</b>、この カードを うえに かさねて みせます。</li>
+      <li>「きょうは あめだから こうえんは ちゅうし。かわりに えほん」と、<b>かわりの よてい</b>も いっしょに みせると あんしん できます。</li>
+      <li>スケジュールの カードと おなじ おおきさに すると かさねやすいです（「えカード」と おおきさを そろえます）。</li>
+      <li>めだつ きいろの しましまに して あります。</li></ul>`,
+    label: `<b>きれいに いんさつ する コツ</b><ul>
+      <li>さいしょは <b>ふつうの かみ</b>に「わくせんも いんさつする」を オンに して ためしずり。シール ようしに かさねて あかりに すかし、ずれを たしかめます。</li>
+      <li>ずれて いたら「ずれの ちょうせい」に mm で いれます（みぎに 1mm ずらす なら よこ ＝ 1）。</li>
+      <li>いんさつ がめんでは <b>「余白：なし」「倍率：100」</b>に します。「ページに合わせる」は つかいません。</li>
+      <li>つかいかけの ようしは「はじめる ばしょ」で つづきから いんさつ できます（ひだりうえが 1、みぎへ じゅんばん）。</li>
+      <li>パッケージの <b>フォーマットばんごう（F12A4-1 など）</b>が おなじ なら、ほかの ひんばんでも おなじ ように つかえます。</li>
+      <li>リストに ない ようしは「じぶんで すんぽうを いれる」を えらび、パッケージや メーカーの サイトの すうじを いれます。</li></ul>`,
+    reward: `<b>つかいかたの ヒント</b><ul>
+      <li>「がんばること」は <b>ひとつだけ</b>に しぼると わかりやすく なります。</li>
+      <li>はじめは <b>5こ くらいの すくない かず</b>から。すぐに「たまった！」を けいけん できる ように します。</li>
+      <li>できたら <b>すぐに</b> シールを はって、いっしょに よろこびます。</li>
+      <li>アンパンマンや バイキンマンの シールを つかうと、たのしみが ふえます。</li></ul>`,
+  };
+
+  function renderEditor() {
+    const t = state.tab, d = state[t];
+    let h = '';
+    if (t === 'schedule') {
+      h += `<h3>📅 スケジュール</h3>
+        <label>タイトル<input type="text" data-path="schedule" data-field="title" value="${esc(d.title)}"></label>
+        <h4>むき</h4>${seg('schedule', 'orient', d.orient, [['v', '⬇ たて（A4 たて）'], ['h', '➡ よこ（A4 よこ）']])}
+        <label><input type="checkbox" data-path="schedule" data-field="showTime" ${d.showTime ? 'checked' : ''}> じかんを いれる</label>
+        <label><input type="checkbox" data-path="schedule" data-field="showCheck" ${d.showCheck ? 'checked' : ''}> おわったら ✔ の まるを いれる</label>
+        <h4>よてい（${d.items.length}こ）</h4>
+        ${d.items.map((x, i) => itemRow(`schedule.items.${i}`, x, { time: d.showTime, cat: true, list: 'schedule.items', i })).join('')}
+        <button data-act="add" data-list="schedule.items">＋ よていを ふやす</button>`;
+    } else if (t === 'voice') {
+      h += `<h3>🔊 こえの ものさし</h3>
+        <label>タイトル<input type="text" data-path="voice" data-field="title" value="${esc(d.title)}"></label>
+        <h4>こえの だんかい（ちいさい じゅん）</h4>
+        ${d.levels.map((x, i) => itemRow(`voice.levels.${i}`, x, { note: true, color: true, list: 'voice.levels', i })).join('')}
+        <button data-act="add" data-list="voice.levels">＋ だんかいを ふやす</button>`;
+    } else if (t === 'firstThen') {
+      h += `<h3>➡ まず・つぎ</h3>
+        <label>ひだりの ことば<input type="text" data-path="firstThen" data-field="firstWord" value="${esc(d.firstWord)}"></label>
+        ${itemRow('firstThen.first', d.first)}
+        <label>みぎの ことば<input type="text" data-path="firstThen" data-field="thenWord" value="${esc(d.thenWord)}"></label>
+        ${itemRow('firstThen.then', d.then)}`;
+    } else if (t === 'steps') {
+      h += `<h3>🔢 てじゅん カード</h3>
+        <h4>ひながた</h4><div class="row">${Object.entries(STEP_PRESETS).map(([k, [name]]) => `<button data-act="preset" data-v="${k}">${name}</button>`).join('')}</div>
+        <label>タイトル<input type="text" data-path="steps" data-field="title" value="${esc(d.title)}"></label>
+        <label><input type="checkbox" data-path="steps" data-field="showCheck" ${d.showCheck ? 'checked' : ''}> できたら ✔ の まるを いれる</label>
+        <h4>じゅんばん（${d.items.length}こ）</h4>
+        ${d.items.map((x, i) => itemRow(`steps.items.${i}`, x, { cat: true, list: 'steps.items', i })).join('')}
+        <button data-act="add" data-list="steps.items">＋ てじゅんを ふやす</button>`;
+    } else if (t === 'feel') {
+      h += `<h3>😊 きもち ボード</h3>
+        <label>タイトル<input type="text" data-path="feel" data-field="title" value="${esc(d.title)}"></label>
+        <h4>カード（${d.items.length}こ）</h4>
+        ${d.items.map((x, i) => itemRow(`feel.items.${i}`, x, { cat: true, list: 'feel.items', i })).join('')}
+        <button data-act="add" data-list="feel.items">＋ ふやす</button>`;
+    } else if (t === 'change') {
+      h += `<h3>🔄 かわったよ カード</h3>
+        <h4>おおきさ</h4>${seg('change', 'size', d.size, [['l', 'おおきい（6まい）'], ['m', 'ふつう（12まい）'], ['s', 'ちいさい（20まい）']])}
+        <h4>カード（${d.items.length}まい）</h4>
+        ${d.items.map((x, i) => itemRow(`change.items.${i}`, x, { list: 'change.items', i })).join('')}
+        <button data-act="add" data-list="change.items">＋ カードを ふやす</button>`;
+    } else if (t === 'label') {
+      const L = labelSpec(d), per = L.cols * L.rows, c = d.custom;
+      const num = (field, label, step = '0.1') => `<label>${label}<input type="number" step="${step}" data-path="label.custom" data-field="${field}" value="${esc(c[field])}"></label>`;
+      h += `<h3>🏷 シール ようし</h3>
+        <label>ようし（パッケージの ひんばん）
+          <select data-path="label" data-field="preset" style="width:100%">
+            ${LABELS.map((l) => `<option value="${l.id}" ${l.id === d.preset ? 'selected' : ''}>${l.cols * l.rows}めん ${l.w}×${l.h}mm ｜ ${l.products}</option>`).join('')}
+            <option value="custom" ${d.preset === 'custom' ? 'selected' : ''}>じぶんで すんぽうを いれる</option>
+          </select></label>
+        <div class="lspec">${d.preset === 'custom' ? '' : `エーワン フォーマット ${L.id}<br>`}${L.cols}れつ × ${L.rows}だん（${per}まい）／ 1まい ${L.w}×${L.h}mm<br>うえの よはく ${L.top}mm ／ ひだりの よはく ${L.left}mm</div>
+        ${d.preset === 'custom' ? `<h4>すんぽう（mm）</h4><div class="numrow">
+          ${num('cols', 'よこに なんまい', '1')}${num('rows', 'たてに なんまい', '1')}
+          ${num('w', '1まいの はば')}${num('h', '1まいの たかさ')}
+          ${num('left', 'ひだりの よはく')}${num('top', 'うえの よはく')}
+          ${num('px', 'よこの ピッチ')}${num('py', 'たての ピッチ')}</div>
+          <p style="font-size:13px;color:#777">ピッチ ＝ 1まいめの ひだりはし（うえはし）から 2まいめの ひだりはし（うえはし）までの ながさ</p>
+          <label><input type="checkbox" data-path="label.custom" data-field="round" ${c.round ? 'checked' : ''}> まるい シール</label>` : ''}
+        <h4>ならべかた</h4>${seg('label', 'mode', d.mode, [['repeat', 'くりかえして ぜんぶ うめる'], ['list', 'じゅんばんに 1かいずつ']])}
+        <div class="numrow"><label>はじめる ばしょ（1〜${per}）<input type="number" min="1" max="${per}" step="1" data-path="label" data-field="start" value="${esc(d.start)}"></label></div>
+        <label><input type="checkbox" data-path="label" data-field="color" ${d.color ? 'checked' : ''}> しゅるいの いろを ぬる</label>
+        <label><input type="checkbox" data-path="label" data-field="outline" ${d.outline ? 'checked' : ''}> わくせんも いんさつする（ためしずり よう）</label>
+        <h4>ずれの ちょうせい（mm）</h4>
+        <div class="numrow"><label>よこ（＋で みぎへ）<input type="number" step="0.5" data-path="label" data-field="offX" value="${esc(d.offX)}"></label>
+          <label>たて（＋で したへ）<input type="number" step="0.5" data-path="label" data-field="offY" value="${esc(d.offY)}"></label></div>
+        <h4>シールの なかみ（${d.items.length}）</h4>
+        ${d.items.map((x, i) => itemRow(`label.items.${i}`, x, { cat: true, list: 'label.items', i })).join('')}
+        <button data-act="add" data-list="label.items">＋ ふやす</button>`;
+    } else if (t === 'reward') {
+      h += `<h3>⭐ ごほうび シール だいし</h3>
+        <label>タイトル<input type="text" data-path="reward" data-field="title" value="${esc(d.title)}"></label>
+        <h4>シールの かず</h4>${seg('reward', 'count', String(d.count), [['5', '5こ'], ['10', '10こ'], ['15', '15こ'], ['20', '20こ']])}
+        <h4>がんばること</h4>${itemRow('reward.task', d.task, { cat: true })}
+        <h4>ごほうび</h4>${itemRow('reward.prize', d.prize, { cat: true })}`;
+    } else {
+      h += `<h3>🃏 えカード（きりとり よう）</h3>
+        <h4>おおきさ</h4>${seg('cards', 'size', d.size, [['l', 'おおきい（6まい）'], ['m', 'ふつう（12まい）'], ['s', 'ちいさい（20まい）']])}
+        <h4>カード（${d.items.length}まい）</h4>
+        ${d.items.map((x, i) => itemRow(`cards.items.${i}`, x, { cat: true, list: 'cards.items', i })).join('')}
+        <button data-act="add" data-list="cards.items">＋ カードを ふやす</button>`;
+    }
+    h += `<div class="tips">${TIPS[t]}</div>`;
+    editorEl.innerHTML = h;
+    document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
+  }
+
+  editorEl.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'pick') { openPicker(b.dataset.path); return; }
+    if (act === 'set') { commit(); get(b.dataset.path)[b.dataset.field] = b.dataset.v; changed(); return; }
+    if (act === 'color') { commit(); get(b.dataset.path).color = b.dataset.v; changed(); return; }
+    if (act === 'preset') {
+      const [name, steps] = STEP_PRESETS[b.dataset.v];
+      commit();
+      state.steps.title = name;
+      state.steps.items = steps.map(([v, l]) => it(v, l, 'life'));
+      changed();
+      say(`「${name}」の ひながたに いれかえました。もとに もどす ときは「↩ もどす」。`);
+      return;
+    }
+    const list = get(b.dataset.list), i = +b.dataset.i;
+    if (act === 'add') {
+      commit();
+      let x;
+      if (b.dataset.list === 'voice.levels') x = lv('🐘', 'ぞうさんの こえ', '', VCOLORS[list.length % VCOLORS.length]);
+      else if (b.dataset.list === 'change.items') x = it('🔄', '', 'mark');
+      else if (b.dataset.list === 'label.items') x = it('⭐', '', 'mark');
+      else if (b.dataset.list === 'steps.items') x = it('⭐', '', 'life');
+      else x = it('⭐', '', 'other');
+      list.push(x);
+      changed();
+      openPicker(`${b.dataset.list}.${list.length - 1}`);
+      return;
+    }
+    if (act === 'up' || act === 'down') {
+      const j = act === 'up' ? i - 1 : i + 1;
+      if (j < 0 || j >= list.length) return;
+      commit(); [list[i], list[j]] = [list[j], list[i]]; changed();
+      return;
+    }
+    if (act === 'del') { commit(); list.splice(i, 1); changed(); say('けしました。「↩ もどす」で もとに もどせます。'); }
+  });
+  editorEl.addEventListener('focusin', () => { editing = false; });
+  editorEl.addEventListener('input', (e) => {
+    const el = e.target, f = el.dataset.field;
+    if (!f || el.type === 'checkbox' || el.tagName === 'SELECT') return;
+    if (!editing) { commit(); editing = true; }
+    const o = get(el.dataset.path);
+    o[f] = el.value;
+    if (f === 'label') o.autoLabel = false;
+    renderPreview(); persist();
+  });
+  editorEl.addEventListener('change', (e) => {
+    const el = e.target, f = el.dataset.field;
+    if (!f) return;
+    if (el.type === 'checkbox') { commit(); get(el.dataset.path)[f] = el.checked; changed(); }
+    else if (el.tagName === 'SELECT') { commit(); get(el.dataset.path)[f] = el.value; changed(); }
+  });
+
+  // ---------- えを えらぶ ----------
+  function openPicker(path) {
+    pickPath = path;
+    renderPicker();
+    $('#picker').hidden = false;
+  }
+  function renderPicker() {
+    $('#mtabs').innerHTML = Object.keys(LIB).map((k) => `<button data-cat="${k}" class="${k === pickCat ? 'active' : ''}" style="border-left:6px solid ${CATS[k].color}">${CATS[k].name}</button>`).join('');
+    $('#mgrid').innerHTML = LIB[pickCat].map(([v, l]) => `<button data-v="${v}" data-l="${esc(l)}"><span class="ic-emo">${v}</span>${esc(l)}</button>`).join('');
+  }
+  function applyIcon(icon, label, cat) {
+    const x = get(pickPath);
+    if (!x) return;
+    commit();
+    x.icon = icon;
+    if (label && (x.autoLabel !== false || !x.label) && !pickPath.startsWith('voice.')) { x.label = label; x.autoLabel = true; }
+    if (cat && 'cat' in x && cat !== 'animal') x.cat = cat;
+    $('#picker').hidden = true;
+    changed();
+  }
+  $('#picker').addEventListener('click', (e) => {
+    if (e.target.id === 'picker' || e.target.closest('[data-act=close]')) { $('#picker').hidden = true; return; }
+    const tab = e.target.closest('#mtabs button');
+    if (tab) { pickCat = tab.dataset.cat; renderPicker(); return; }
+    const em = e.target.closest('#mgrid button');
+    if (em) applyIcon({ t: 'emoji', v: em.dataset.v }, em.dataset.l, pickCat);
+  });
+  $('#photoInput').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try { applyIcon({ t: 'img', v: await readImage(file, 360) }); }
+    catch (err) { say('しゃしんを よみこめませんでした。', true); }
+    e.target.value = '';
+  });
+  function readImage(file, max) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onerror = reject;
+      fr.onload = () => {
+        const img = new Image();
+        img.onerror = reject;
+        img.onload = () => {
+          const m = Math.min(img.width, img.height), sx = (img.width - m) / 2, sy = (img.height - m) / 2;
+          const size = Math.min(max, m);
+          const c = document.createElement('canvas');
+          c.width = c.height = size;
+          const ctx = c.getContext('2d');
+          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
+          ctx.drawImage(img, sx, sy, m, m, 0, 0, size, size);
+          resolve(c.toDataURL('image/jpeg', 0.82));
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+
+  // ---------- うえの ボタン ----------
+  $('#tabs').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-tab]');
+    if (!b) return;
+    state.tab = b.dataset.tab;
+    say('');
+    changed();
+  });
+  $('#undo').addEventListener('click', () => {
+    const prev = undoStack.pop();
+    if (!prev) { say('もどせる ものが ありません'); return; }
+    state = JSON.parse(prev);
+    changed();
+  });
+  $('#print').addEventListener('click', () => window.print());
+
+  // がめんで みせる
+  let wakeLock = null;
+  $('#showBtn').addEventListener('click', () => {
+    const r = PAGES[state.tab](state[state.tab]);
+    const box = $('#showIn');
+    box.className = 'showin ' + r.orient;
+    box.innerHTML = r.html;
+    $('#show').hidden = false;
+    try { navigator.wakeLock && navigator.wakeLock.request('screen').then((l) => { wakeLock = l; }).catch(() => {}); } catch (e) { /* なくても よい */ }
+  });
+  function closeShow() {
+    $('#show').hidden = true;
+    if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+  }
+  $('#showClose').addEventListener('click', closeShow);
+
+  // スマホ版：ファイルの ほぞんは downloads の きのうで
+  let downloads = null;
+  if (PHONE_BUILD) {
+    $('#print').hidden = true;
+    $('#saveFile').hidden = true;
+    if (window.claude && window.claude.use) {
+      window.claude.use('downloads').then((d) => {
+        downloads = d;
+        if (d) { $('#saveFile').hidden = false; $('#printFile').hidden = false; }
+      }).catch(() => {});
+    }
+  }
+  async function offerFile(filename, data, okMsg) {
+    try {
+      await downloads.save({ filename, data });
+      say(okMsg);
+    } catch (e) {
+      if (e && e.code === 'declined') say('ほぞんを やめました。');
+      else if (e && e.code === 'rate_limited') say('すこし まってから もういちど おしてください。');
+      else say('ここでは ファイルを ほぞん できませんでした。', true);
+    }
+  }
+  $('#printFile').addEventListener('click', () => {
+    const r = PAGES[state.tab](state[state.tab]);
+    const css = [...document.querySelectorAll('style')].map((el) => el.textContent).join('\n');
+    const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>いんさつ</title>`
+      + `<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet"><style>${css}</style>`
+      + `<style>@page { size: A4 ${r.orient}; margin: 0; } body { background: #fff; padding: 16px; } @media print { body { padding: 0; } }</style></head>`
+      + `<body><div class="preview">${r.html}</div><script>window.onload = () => setTimeout(() => print(), 600);<\/script></body></html>`;
+    offerFile(`いんさつ_${state.tab}.html`, html, 'いんさつ よう ファイルを ほぞん しました。ひらくと いんさつ がめんが でます。');
+  });
+  function downloadText(filename, text, type) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type }));
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  // スマホ：きょうゆう メニュー（LINE・ドライブ・「ファイル」に ほぞん など）を だす。
+  // Android の Chrome は .json を きょうゆう できない ので .txt でも ためし、それも だめなら ダウンロード。
+  async function shareOrDownload(base, text) {
+    const tries = [new File([text], base + '.json', { type: 'application/json' }), new File([text], base + '.txt', { type: 'text/plain' })];
+    for (const file of tries) {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: base });
+          say('ほぞん しました。もう かたほうの アプリの「ファイルを ひらく」で つかえます。');
+          return;
+        } catch (e) {
+          if (e && e.name === 'AbortError') { say('ほぞんを やめました。'); return; }
+        }
+      }
+    }
+    downloadText(base + '.json', text, 'application/json');
+    say('「ダウンロード」に ほぞん しました。もう かたほうの アプリの「ファイルを ひらく」で つかえます。');
+  }
+  $('#saveFile').addEventListener('click', () => {
+    if (PHONE_BUILD) { offerFile('しかくしえんカード.json', JSON.stringify(state), 'ファイルに ほぞん しました。「ファイルを ひらく」で もとに もどせます。'); return; }
+    if (APP_MODE === 'pwa') { shareOrDownload('しかくしえんカード', JSON.stringify(state)); return; }
+    downloadText('しかくしえんカード.json', JSON.stringify(state), 'application/json');
+    say('ファイルに ほぞん しました。「ファイルを ひらく」で もとに もどせます。');
+  });
+  $('#openFile').addEventListener('click', () => $('#openInput').click());
+  $('#openInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      try {
+        const data = JSON.parse(fr.result);
+        if (!data.schedule || !data.voice) throw new Error('bad');
+        commit(); state = Object.assign(defaults(), data); changed();
+        say('ファイルを ひらきました。');
+      } catch (err) { say('この ファイルは ひらけませんでした。', true); }
+      e.target.value = '';
+    };
+    fr.readAsText(file);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { $('#picker').hidden = true; closeShow(); }
+  });
+
+  if (APP_MODE === 'pwa') {
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+    try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) { /* なくても よい */ }
+  }
+
+  changed();
+  if (!storageOK) say('この ひらきかたでは じどうで ほぞん できません。おわったら「ファイルに ほぞん」を つかってください。', true);
+})();
+</script>
+</body>
+</html>
