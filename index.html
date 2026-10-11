@@ -88,6 +88,12 @@
   .showbar { position: fixed; top: 0; left: 0; right: 0; z-index: 31; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px; background: rgba(0,0,0,.7); color: #fff; font-size: 13px; }
   .showbar button { background: #fff; color: #333; border-color: #fff; }
   .showin { margin: 0 auto; width: 100%; }
+  .showin [data-id] { cursor: pointer; }
+  .done .scheck { background: var(--c); border-style: solid; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; }
+  .done .scheck::after { content: '✔'; }
+  .srow.done .scheck { font-size: calc(var(--rh) * 0.38); }
+  .hcard.done .scheck { font-size: calc(var(--w) * 0.22); }
+  .done .ibox, .done .slabel, .done .hlabel, .done .stime, .done .htime { opacity: .35; }
   .showin.landscape { max-width: calc((100dvh - 80px) * 297 / 210); }
   .showin.portrait { max-width: calc((100dvh - 80px) * 210 / 297); }
   .showin .page { max-width: none; }
@@ -126,6 +132,17 @@
   .harrow { color: #c8c8c8; font-size: 2.2cqw; }
   .hcard { position: relative; }
   .hnum { position: absolute; top: -1.8cqw; left: -1.4cqw; width: calc(var(--w) * 0.3); height: calc(var(--w) * 0.3); border-radius: 50%; background: var(--c); color: #fff; border: .4cqw solid #fff; font-size: calc(var(--w) * 0.17); font-weight: bold; display: flex; align-items: center; justify-content: center; }
+  /* しゅうかん よてい */
+  .wgrid { flex: 1; display: grid; grid-template-columns: repeat(var(--days), 1fr); gap: 1cqw; margin-top: 1cqw; min-height: 0; }
+  .wcol { display: flex; flex-direction: column; gap: .8cqw; background: #fafafa; border-radius: 1.6cqw; padding: .8cqw; min-width: 0; }
+  .wdate { margin-left: .8cqw; font-size: .85em; }
+  .pdate.filled { color: #555; font-size: 3.4cqw; }
+  .landscape .pdate.filled { font-size: 2.4cqw; }
+  .dateinput { font: inherit; font-size: 16px; padding: 6px 8px; border: 2px solid var(--line); border-radius: 10px; background: var(--ui-surface); color: var(--ui-fg); }
+  .whead { background: var(--wc); color: #fff; text-align: center; border-radius: 1.2cqw; font-size: 2.6cqw; font-weight: bold; padding: .4cqw 0; }
+  .witem { height: var(--ih); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3cqw; background: var(--bg); border-top: .6cqw solid var(--c); border-radius: 1cqw; padding: .4cqw .3cqw; }
+  .witem .ibox { --s: var(--is); border: none; background: transparent; }
+  .wlabel { font-size: var(--fs); text-align: center; line-height: 1.15; word-break: keep-all; overflow-wrap: anywhere; }
   /* きもち ボード */
   .fgrid { flex: 1; display: grid; grid-template-columns: repeat(var(--cols), 1fr); grid-auto-rows: 1fr; gap: 2.4cqw; margin-top: 2cqw; }
   .fcell { background: var(--bg); border: .8cqw solid var(--c); border-radius: 3cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1cqw; min-height: 0; }
@@ -191,6 +208,7 @@
   .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
   .mgrid button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; font-size: 13px; }
   .mgrid .ic-emo { font-size: 34px; display: block; height: 42px; line-height: 42px; }
+  .photobusy { margin: 8px 0 0; color: var(--ui-head); font-size: 15px; }
   .photo { display: block; margin-top: 12px; padding: 10px; border: 2px dashed var(--line); border-radius: 12px; font-size: 15px; }
 
   @media print {
@@ -234,7 +252,7 @@
 </main>
 
 <div class="show" id="show" hidden>
-  <div class="showbar"><span>スマホを よこに すると おおきく みえます</span><button id="showClose">✕ とじる</button></div>
+  <div class="showbar"><span id="showHint">スマホを よこに すると おおきく みえます</span><button id="showReset" hidden>✔ ぜんぶ けす</button><button id="showClose">✕ とじる</button></div>
   <div class="showin" id="showIn"></div>
 </div>
 
@@ -243,7 +261,8 @@
     <div class="mhead"><span>えを えらぶ</span><button data-act="close">とじる</button></div>
     <div class="mtabs" id="mtabs"></div>
     <div class="mgrid" id="mgrid"></div>
-    <label class="photo">📷 しゃしんを つかう（スマホなら その ばで さつえいも できます）<br><input type="file" accept="image/*" id="photoInput"></label>
+    <label class="photo">📷 しゃしんを つかう（スマホなら その ばで さつえいも できます）<br><input type="file" accept="image/*,.heic,.heif" id="photoInput"></label>
+    <p class="photobusy" id="photoBusy" hidden>しゃしんを よみこんで います…</p>
   </div>
 </div>
 
@@ -259,7 +278,7 @@
     food:   { name: 'たべる', color: '#fb8c00', bg: '#fff3e0' },
     play:   { name: 'あそぶ', color: '#1e88e5', bg: '#e3f2fd' },
     out:    { name: 'おでかけ', color: '#8e24aa', bg: '#f3e5f5' },
-    school: { name: 'ひまわり・がっこう', color: '#e91e63', bg: '#fce4ec' },
+    school: { name: 'ほいくえん・がっこう', color: '#e91e63', bg: '#fce4ec' },
     feel:   { name: 'きもち・つたえる', color: '#f9a825', bg: '#fffde7' },
     animal: { name: 'どうぶつ', color: '#6d4c41', bg: '#efebe9' },
     mark:   { name: 'しるし・ごほうび', color: '#f57f17', bg: '#fff8e1' },
@@ -267,13 +286,13 @@
   };
   // Windows 10 でも でる えもじ だけ
   const LIB = {
-    life: [['🚽','トイレ'],['🧼','てを あらう'],['🦷','はみがき'],['🛁','おふろ'],['👕','きがえ'],['🧦','くつした'],['👟','くつを はく'],['🛏️','ねる'],['💊','くすり'],['🧹','おかたづけ'],['🎒','かばん'],['🧢','ぼうし'],
+    life: [['🚽','トイレ'],['🧼','てを あらう'],['🦷','はみがき'],['🛁','おふろ'],['👕','きがえ'],['🧦','くつした'],['👟','くつを はく'],['🛏️','ねる'],['💊','くすり'],['📦','おかたづけ'],['🧹','おそうじ'],['🎒','かばん'],['🧢','ぼうし'],['🌡️','おねつを はかる'],
       ['🚰','みずを だす'],['👐','ごしごし'],['💧','ながす'],['🤲','ふく'],['🧻','トイレットペーパー'],['👚','パジャマ'],['👖','ズボン'],['🧥','うわぎ']],
     food: [['🍚','ごはん'],['🍞','パン'],['🍙','おにぎり'],['🥛','ぎゅうにゅう'],['🧃','ジュース'],['🍪','おやつ'],['🍎','りんご'],['🍌','バナナ'],['🍓','いちご'],['🍽️','いただきます'],['🍱','おべんとう'],['🍦','アイス']],
     play: [['🧸','おもちゃ'],['🧱','ブロック'],['🧩','パズル'],['📚','えほん'],['🎨','おえかき'],['📺','テレビ'],['📱','タブレット'],['🎵','うた'],['⚽','ボール'],['🎠','ゆうぐ'],['🚂','でんしゃ あそび'],['🎈','ふうせん']],
     out: [['🚶','おさんぽ'],['🚗','くるま'],['🚌','バス'],['🚃','でんしゃ'],['🛒','かいもの'],['🏞️','こうえん'],['🏥','びょういん'],['💈','とこや'],['🏠','おうち'],['👵','おばあちゃんち'],['🚑','きゅうきゅうしゃ'],['🚒','しょうぼうしゃ']],
-    school: [['🌻','ひまわり'],['🏫','がっこう'],['👋','あいさつ'],['🤸','うんどう'],['🎶','おうた'],['✂️','こうさく'],['👩‍🏫','せんせい'],['👫','おともだち'],['🪑','すわる'],['🙌','できた！'],['🚸','とうえん'],['🎉','たのしみ']],
-    feel: [['😊','うれしい'],['😢','かなしい'],['😠','おこってる'],['😨','こわい'],['😴','ねむい'],['🤕','いたい'],['🙋','てつだって'],['✋','まってね'],['🤫','しずかに'],['🙆','いいよ'],['🙅','ストップ'],['🤝','かして'],['👂','きいてね'],['👀','みてね'],['🤐','おくち チャック']],
+    school: [['🌷','ほいくえん'],['🏫','がっこう'],['🌻','りょういく'],['👋','あいさつ'],['🤸','うんどう'],['🎶','おうた'],['✂️','こうさく'],['👩‍🏫','せんせい'],['👫','おともだち'],['🪑','すわる'],['🙌','できた！'],['🚸','とうえん'],['🎉','たのしみ']],
+    feel: [['😊','うれしい'],['😢','かなしい'],['😠','おこってる'],['😨','こわい'],['😴','ねむい'],['🤕','いたい'],['🤒','おねつ'],['🙋','てつだって'],['✋','まってね'],['🤫','しずかに'],['🙆','いいよ'],['🙅','ストップ'],['🤝','かして'],['👂','きいてね'],['👀','みてね'],['🤐','おくち チャック']],
     animal: [['🐭','ねずみ'],['🐱','ねこ'],['🐶','いぬ'],['🦁','ライオン'],['🐘','ぞう'],['🐰','うさぎ'],['🐻','くま'],['🐦','ことり'],['🐟','さかな'],['🐢','かめ'],['🐸','かえる'],['🐵','さる']],
     mark: [['🔄','かわったよ'],['❌','ちゅうし'],['⏰','あとでね'],['☔','あめ'],['🏠','おやすみ'],['❓','まだ わからない'],
       ['⭐','ほし'],['🎁','プレゼント'],['🏆','できた！'],['👍','いいね'],['💮','よく できました'],['🎖️','がんばったね']],
@@ -316,9 +335,22 @@
     return {
       tab: 'schedule',
       schedule: {
-        title: 'きょうの よてい', orient: 'v', showTime: false, showCheck: true,
+        title: 'きょうの よてい', orient: 'v', showTime: false, showCheck: true, dateMode: 'blank', date: '',
+        // しゅうかん よてい（れい）
+        week: {
+          title: 'こんしゅうの よてい', span: '7', dateMode: 'blank', start: '',
+          days: [
+            { name: 'げつ', items: [it('🌷', 'ほいくえん', 'school'), it('🛁', 'おふろ', 'life')] },
+            { name: 'か', items: [it('🌷', 'ほいくえん', 'school'), it('🚶', 'おさんぽ', 'out')] },
+            { name: 'すい', items: [it('🌷', 'ほいくえん', 'school'), it('🏥', 'びょういん', 'out')] },
+            { name: 'もく', items: [it('🌷', 'ほいくえん', 'school'), it('🛒', 'かいもの', 'out')] },
+            { name: 'きん', items: [it('🌷', 'ほいくえん', 'school'), it('📚', 'えほん', 'play')] },
+            { name: 'ど', items: [it('🏞️', 'こうえん', 'out')] },
+            { name: 'にち', items: [it('🏠', 'おうちで のんびり', 'out')] },
+          ],
+        },
         items: [it('🍚', 'あさごはん', 'food', '7:00'), it('🦷', 'はみがき', 'life', '7:30'), it('👕', 'きがえ', 'life', '7:45'),
-          it('🚗', 'くるま', 'out', '8:30'), it('🌻', 'ひまわり', 'school', '9:00'), it('🚶', 'おさんぽ', 'out', '10:00'), it('🏠', 'おうちに かえる', 'out', '14:00')],
+          it('🚗', 'くるま', 'out', '8:30'), it('🌷', 'ほいくえん', 'school', '9:00'), it('🚶', 'おさんぽ', 'out', '10:00'), it('🏠', 'おうちに かえる', 'out', '14:00')],
       },
       voice: {
         title: 'こえの ものさし',
@@ -352,9 +384,17 @@
   }
 
   const storageOK = (() => { try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); return true; } catch (e) { return false; } })();
+  function withDefaults(saved) {
+    const def = defaults(), out = Object.assign({}, def, saved);
+    for (const k of Object.keys(def)) {
+      const dv = def[k], sv = saved[k];
+      if (dv && typeof dv === 'object' && !Array.isArray(dv) && sv && typeof sv === 'object') out[k] = Object.assign({}, dv, sv);
+    }
+    return out;
+  }
   function load() {
     if (storageOK) {
-      try { const raw = localStorage.getItem(KEY); if (raw) return Object.assign(defaults(), JSON.parse(raw)); } catch (e) { /* さいしょから */ }
+      try { const raw = localStorage.getItem(KEY); if (raw) return withDefaults(JSON.parse(raw)); } catch (e) { /* さいしょから */ }
     }
     return defaults();
   }
@@ -362,6 +402,7 @@
   const undoStack = [];
   let editing = false;
   let pickPath = null, pickCat = 'life';
+  let weekDay = 0;  // しゅうかん よていで なおして いる ひ
 
   function persist() {
     if (!storageOK) return;
@@ -383,12 +424,53 @@
   const catStyle = (k) => `--c:${catOf(k).color};--bg:${catOf(k).bg}`;
 
   // ---------- いんさつ ページ ----------
+  // ひづけ：dateMode は 'blank'（てがき よう の くうらん）／'fill'（いれた ひづけ）／'none'（なし）
+  const WD = ['にち', 'げつ', 'か', 'すい', 'もく', 'きん', 'ど'];
+  function parseDate(v) { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
+  function isoDate(d) { return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+  function addDays(d, n) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
+  function mondayOf(d) { return addDays(d, -((d.getDay() + 6) % 7)); }
+  const md = (d) => `${d.getMonth() + 1}がつ ${d.getDate()}にち`;
+  function dayDateLine(d) {
+    if (d.dateMode === 'none') return '';
+    const dt = d.dateMode === 'fill' ? parseDate(d.date) : null;
+    return dt ? `<div class="pdate filled">${md(dt)}（${WD[dt.getDay()]}）</div>` : '<div class="pdate">　　がつ　　にち（　　）</div>';
+  }
+  function weekMonday(w) { const dt = w.dateMode === 'fill' ? parseDate(w.start) : null; return dt ? mondayOf(dt) : null; }
+  function weekDateLine(w, nd) {
+    if (w.dateMode === 'none') return '';
+    const mon = weekMonday(w);
+    return mon ? `<div class="pdate filled">${md(mon)} 〜 ${md(addDays(mon, nd - 1))}</div>` : '<div class="pdate">　　がつ　　にち 〜 　　がつ　　にち</div>';
+  }
+  function dateEditor(path, mode, field, value, quick) {
+    let h = `<h4>ひづけ</h4>${seg(path, 'dateMode', mode || 'blank', [['blank', '✏ てがき よう'], ['fill', '📅 いれる'], ['none', 'なし']])}`;
+    if (mode === 'fill') {
+      h += `<div class="row"><input type="date" class="dateinput" data-path="${path}" data-field="${field}" value="${esc(value)}">
+        ${quick.map(([act, label]) => `<button data-act="${act}" data-path="${path}">${label}</button>`).join('')}</div>`;
+    }
+    return h;
+  }
+  const WEEK_COLORS = ['#f08a24', '#f08a24', '#f08a24', '#f08a24', '#f08a24', '#1e88e5', '#e53935'];
+  function weekPages(w) {
+    const days = w.days.slice(0, w.span === '5' ? 5 : 7), nd = days.length;
+    const colW = (92 - (nd - 1) * 1) / nd;
+    const most = Math.max(1, ...days.map((d) => d.items.length));
+    const ih = Math.min(colW * 1.1, (45 - (most - 1) * 0.8) / most);
+    const is = Math.min(colW * 0.7, ih * 0.58), fs = Math.min(2.4, colW * 0.16, ih * 0.2);
+    const mon = weekMonday(w);
+    const cols = days.map((d, i) => `<div class="wcol" style="--wc:${WEEK_COLORS[i]}"><div class="whead">${esc(d.name)}${mon ? `<span class="wdate">${addDays(mon, i).getDate()}</span>` : ''}</div>
+      ${d.items.map((x) => `<div class="witem" style="${catStyle(x.cat)}"><div class="ibox">${iconHtml(x.icon)}</div><div class="wlabel">${esc(x.label)}</div></div>`).join('')}</div>`).join('');
+    return { orient: 'landscape', html: `<div class="page landscape" style="--days:${nd};--ih:${ih.toFixed(2)}cqw;--is:${is.toFixed(2)}cqw;--fs:${fs.toFixed(2)}cqw"><div class="pin">
+      <div class="ptitle">${esc(w.title)}</div>${weekDateLine(w, nd)}
+      <div class="wgrid">${cols}</div></div></div>` };
+  }
   function schedulePages(d) {
+    if (d.orient === 'w') return weekPages(d.week);
     const n = d.items.length;
-    const head = `<div class="ptitle">${esc(d.title)}</div><div class="pdate">　　がつ　　にち（　　）</div>`;
+    const head = `<div class="ptitle">${esc(d.title)}</div>${dayDateLine(d)}`;
     if (d.orient === 'v') {
       const rh = Math.max(6, Math.min(24, (d.showCheck ? 108 : 112) / Math.max(1, n) - 1.8));
-      const rows = d.items.map((x) => `<div class="srow" style="${catStyle(x.cat)}">
+      const rows = d.items.map((x) => `<div class="srow" data-id="${x.id}" style="${catStyle(x.cat)}">
           ${d.showTime ? `<div class="stime">${esc(x.time)}</div>` : ''}
           <div class="ibox">${iconHtml(x.icon)}</div>
           <div class="slabel">${esc(x.label)}</div>
@@ -407,7 +489,7 @@
     w = Math.min(w, (52 / nRows - 8.5 - (o.showTime ? 3 : 0)) / (1 + (o.showCheck ? 0.36 : 0)));
     const chunks = [items.slice(0, perRow), items.slice(perRow)].filter((c) => c.length);
     const rows = chunks.map((c, r) => `<div class="hrow">${c.map((x, j) => `${j ? '<div class="harrow">▶</div>' : ''}
-        <div class="hcard" style="${catStyle(x.cat)}">
+        <div class="hcard" data-id="${x.id}" style="${catStyle(x.cat)}">
           ${o.numbered ? `<div class="hnum">${r * perRow + j + 1}</div>` : ''}
           ${o.showTime ? `<div class="htime">${esc(x.time)}</div>` : ''}
           <div class="ibox">${iconHtml(x.icon)}</div>
@@ -563,7 +645,8 @@
       <li>おわったら チェックや シールで「おしまい」を みえる ように。</li>
       <li>カードを みせる ときは、<b>ことばでも かならず つたえます</b>。</li>
       <li>よていが かわったら、もとの カードを だまって はずさず、「かわったよ」の カードを かさねて みせます。</li>
-      <li>おなじ しゅるいは おなじ いろ（せいかつ＝みどり、たべる＝オレンジ…）に すると さがしやすく なります。</li></ul>`,
+      <li>おなじ しゅるいは おなじ いろ（せいかつ＝みどり、たべる＝オレンジ…）に すると さがしやすく なります。</li>
+      <li><b>しゅうかん</b>は 1しゅうかんの みとおしに。ほいくえんの ひ・おやすみの ひが ひとめで わかります。きょうの ひに クリップや マグネットを つけると「いま どこ」が わかります。</li></ul>`,
     voice: `<b>つかいかたの ヒント</b><ul>
       <li>「うるさい」「だめ」ではなく、<b>「ねこさんの こえで はなそうね」</b>と、して ほしい こえを ゆびさして つたえます。</li>
       <li>いえで あそびながら「ねずみさんの こえ」「ライオンさんの こえ」を いっしょに だして れんしゅう すると、ちがいが わかりやすく なります。</li>
@@ -612,13 +695,29 @@
     let h = '';
     if (t === 'schedule') {
       h += `<h3>📅 スケジュール</h3>
-        <label>タイトル<input type="text" data-path="schedule" data-field="title" value="${esc(d.title)}"></label>
-        <h4>むき</h4>${seg('schedule', 'orient', d.orient, [['v', '⬇ たて（A4 たて）'], ['h', '➡ よこ（A4 よこ）']])}
+        <h4>かたち</h4>${seg('schedule', 'orient', d.orient, [['v', '⬇ 1にち たて'], ['h', '➡ 1にち よこ'], ['w', '🗓 しゅうかん']])}`;
+      if (d.orient === 'w') {
+        const w = d.week, nd = w.span === '5' ? 5 : 7;
+        if (weekDay >= nd) weekDay = 0;
+        const day = w.days[weekDay], list = `schedule.week.days.${weekDay}.items`;
+        h += `<label>タイトル<input type="text" data-path="schedule.week" data-field="title" value="${esc(w.title)}"></label>
+          ${dateEditor('schedule.week', w.dateMode, 'start', w.start, [['thisWeek', 'こんしゅう'], ['nextWeek', 'らいしゅう']])}
+          ${w.dateMode === 'fill' ? '<p style="font-size:13px;color:var(--ui-muted);margin:0">その しゅうの どの ひを えらんでも、げつようびから はじまります。</p>' : ''}
+          <h4>ひにち</h4>${seg('schedule.week', 'span', w.span, [['5', 'げつ〜きん'], ['7', 'げつ〜にち']])}
+          <h4>どの ひを なおす？</h4>
+          <div class="row">${w.days.slice(0, nd).map((x, i) => `<button data-act="weekday" data-v="${i}" class="${i === weekDay ? 'active' : ''}">${esc(x.name)}（${x.items.length}）</button>`).join('')}</div>
+          ${day.items.map((x, j) => itemRow(`${list}.${j}`, x, { cat: true, list, i: j })).join('')}
+          <div class="row"><button data-act="add" data-list="${list}">＋ ${esc(day.name)}の よていを ふやす</button>
+            <button data-act="copyDay">この ひの よていを へいじつ ぜんぶに コピー</button></div>`;
+      } else {
+      h += `<label>タイトル<input type="text" data-path="schedule" data-field="title" value="${esc(d.title)}"></label>
+        ${dateEditor('schedule', d.dateMode, 'date', d.date, [['today', 'きょう'], ['tomorrow', 'あした']])}
         <label><input type="checkbox" data-path="schedule" data-field="showTime" ${d.showTime ? 'checked' : ''}> じかんを いれる</label>
         <label><input type="checkbox" data-path="schedule" data-field="showCheck" ${d.showCheck ? 'checked' : ''}> おわったら ✔ の まるを いれる</label>
         <h4>よてい（${d.items.length}こ）</h4>
         ${d.items.map((x, i) => itemRow(`schedule.items.${i}`, x, { time: d.showTime, cat: true, list: 'schedule.items', i })).join('')}
         <button data-act="add" data-list="schedule.items">＋ よていを ふやす</button>`;
+      }
     } else if (t === 'voice') {
       h += `<h3>🔊 こえの ものさし</h3>
         <label>タイトル<input type="text" data-path="voice" data-field="title" value="${esc(d.title)}"></label>
@@ -703,6 +802,17 @@
     if (act === 'pick') { openPicker(b.dataset.path); return; }
     if (act === 'set') { commit(); get(b.dataset.path)[b.dataset.field] = b.dataset.v; changed(); return; }
     if (act === 'color') { commit(); get(b.dataset.path).color = b.dataset.v; changed(); return; }
+    if (act === 'weekday') { weekDay = +b.dataset.v; renderEditor(); return; }
+    if (act === 'today' || act === 'tomorrow') { commit(); state.schedule.date = isoDate(addDays(new Date(), act === 'today' ? 0 : 1)); changed(); return; }
+    if (act === 'thisWeek' || act === 'nextWeek') { commit(); state.schedule.week.start = isoDate(mondayOf(addDays(new Date(), act === 'thisWeek' ? 0 : 7))); changed(); return; }
+    if (act === 'copyDay') {
+      const days = state.schedule.week.days, src = days[weekDay];
+      commit();
+      for (let i = 0; i < 5; i++) if (i !== weekDay) days[i].items = JSON.parse(JSON.stringify(src.items)).map((x) => Object.assign(x, { id: uid() }));
+      changed();
+      say(`${src.name}の よていを げつ〜きん に コピー しました。もとに もどす ときは「↩ もどす」。`);
+      return;
+    }
     if (act === 'preset') {
       const [name, steps] = STEP_PRESETS[b.dataset.v];
       commit();
@@ -748,6 +858,7 @@
     const el = e.target, f = el.dataset.field;
     if (!f) return;
     if (el.type === 'checkbox') { commit(); get(el.dataset.path)[f] = el.checked; changed(); }
+    else if (el.type === 'date') { get(el.dataset.path)[f] = el.value; renderPreview(); persist(); }
     else if (el.tagName === 'SELECT') { commit(); get(el.dataset.path)[f] = el.value; changed(); }
   });
 
@@ -766,10 +877,11 @@
     if (!x) return;
     commit();
     x.icon = icon;
-    if (label && (x.autoLabel !== false || !x.label) && !pickPath.startsWith('voice.')) { x.label = label; x.autoLabel = true; }
+    if (label) x.label = pickPath.startsWith('voice.') ? `${label}さんの こえ` : label;
     if (cat && 'cat' in x && cat !== 'animal') x.cat = cat;
     $('#picker').hidden = true;
     changed();
+    if (label) say('なまえも かえました。もとに もどす ときは「↩ もどす」。');
   }
   $('#picker').addEventListener('click', (e) => {
     if (e.target.id === 'picker' || e.target.closest('[data-act=close]')) { $('#picker').hidden = true; return; }
@@ -778,34 +890,97 @@
     const em = e.target.closest('#mgrid button');
     if (em) applyIcon({ t: 'emoji', v: em.dataset.v }, em.dataset.l, pickCat);
   });
+  // しゃしん：おおきな しゃしんでも かるく よみこむ（base64 に しないで そのまま ひらく）。よみこみ ちゅうは もう いちど おせない。
   $('#photoInput').addEventListener('change', async (e) => {
-    const file = e.target.files && e.target.files[0];
+    const input = e.target, file = input.files && input.files[0];
     if (!file) return;
+    input.disabled = true;
+    $('#photoBusy').hidden = false;
     try { applyIcon({ t: 'img', v: await readImage(file, 360) }); }
-    catch (err) { say('しゃしんを よみこめませんでした。', true); }
-    e.target.value = '';
+    catch (err) { photoError(err); }
+    finally { input.disabled = false; $('#photoBusy').hidden = true; input.value = ''; }
   });
-  function readImage(file, max) {
+  async function readImage(file, max) {
+    let img;
+    try {
+      img = await loadImg(file);
+    } catch (e) {
+      // ブラウザが ひらけない ときだけ、iPhone の しゃしん（HEIC）なら へんかん する
+      if (!(await isHeic(file))) throw e;
+      img = await loadImg(await heicToJpeg(file));
+    }
+    const m = Math.min(img.width, img.height), sx = (img.width - m) / 2, sy = (img.height - m) / 2;
+    const size = Math.min(max, m);
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
+    ctx.drawImage(img, sx, sy, m, m, 0, 0, size, size);
+    return c.toDataURL('image/jpeg', 0.82);
+  }
+  function loadImg(blob) {
     return new Promise((resolve, reject) => {
-      const fr = new FileReader();
-      fr.onerror = reject;
-      fr.onload = () => {
-        const img = new Image();
-        img.onerror = reject;
-        img.onload = () => {
-          const m = Math.min(img.width, img.height), sx = (img.width - m) / 2, sy = (img.height - m) / 2;
-          const size = Math.min(max, m);
-          const c = document.createElement('canvas');
-          c.width = c.height = size;
-          const ctx = c.getContext('2d');
-          ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
-          ctx.drawImage(img, sx, sy, m, m, 0, 0, size, size);
-          resolve(c.toDataURL('image/jpeg', 0.82));
-        };
-        img.src = fr.result;
-      };
-      fr.readAsDataURL(file);
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('decode')); };
+      img.src = url;
     });
+  }
+
+  // ---------- iPhone の しゃしん（HEIC） ----------
+  // Windows の Edge や Chrome は HEIC を ひらけない ので、へんかんの ぶひん（heic2any）を
+  // HEIC を えらんだ ときだけ インターネットから よみこむ。しゃしんは どこにも おくらない。
+  // （おさんぽちず アプリと おなじ しくみ）
+  const HEIC_LIB = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+  const HEIC_SRI = 'sha384-OTofQ0MEeiSgh62havBcemCIK0gqj809wX6UA0uPISNMRnR6NZyCdGzX3SbLrgwL';
+  let heicLib = null;
+  async function isHeic(file) {
+    if (/image\/hei[cf]/i.test(file.type || '') || /\.hei[cf]$/i.test(file.name || '')) return true;
+    try {
+      const b = new Uint8Array(await file.slice(4, 12).arrayBuffer());
+      return /^ftyp(heic|heix|hevc|hevx|heim|heis|mif1|msf1)$/.test(String.fromCharCode(...b));
+    } catch (e) { return false; }
+  }
+  function loadHeicLib() {
+    if (window.heic2any) return Promise.resolve(window.heic2any);
+    if (!heicLib) {
+      heicLib = new Promise((resolve, reject) => {
+        const el = document.createElement('script');
+        el.src = HEIC_LIB; el.integrity = HEIC_SRI; el.crossOrigin = 'anonymous';
+        el.onload = () => (window.heic2any ? resolve(window.heic2any) : reject(new Error('lib')));
+        el.onerror = () => { heicLib = null; el.remove(); reject(new Error('offline')); };
+        document.head.appendChild(el);
+      });
+    }
+    return heicLib;
+  }
+  async function heicToJpeg(file) {
+    $('#photoBusy').textContent = 'iPhone の しゃしん（HEIC）を へんかん して います。すこし まってね…';
+    let lib;
+    try {
+      lib = await loadHeicLib();
+    } catch (e) {
+      const err = new Error('heic-offline'); err.heicOffline = true; throw err;
+    }
+    try {
+      const out = await lib({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+      return Array.isArray(out) ? out[0] : out;
+    } catch (e) {
+      const err = new Error('heic-convert'); err.heicFailed = true; throw err;
+    } finally {
+      $('#photoBusy').textContent = 'しゃしんを よみこんで います…';
+    }
+  }
+  function photoError(err) {
+    $('#picker').hidden = true;
+    if (err && err.heicOffline) {
+      say('iPhone の しゃしん（HEIC）は、インターネットに つながって いる ときだけ へんかん できます。つながらない ときは、スマホで しゃしんを ひょうじして スクリーンショットを とり、それを つかって ください。', true);
+    } else if (err && err.heicFailed) {
+      say('この iPhone の しゃしん（HEIC）は へんかん できませんでした。スマホで しゃしんを ひょうじして スクリーンショットを とり、それを つかって ください。', true);
+    } else {
+      say('しゃしんを よみこめませんでした。JPEG か PNG の しゃしんを つかって ください。', true);
+    }
   }
 
   // ---------- うえの ボタン ----------
@@ -831,9 +1006,30 @@
     const box = $('#showIn');
     box.className = 'showin ' + r.orient;
     box.innerHTML = r.html;
+    // ✔ は その ひ だけ（ひが かわったら けす）
+    const today = isoDate(new Date());
+    if (state.doneDate !== today) { state.done = []; state.doneDate = today; persist(); }
+    applyDone();
     $('#show').hidden = false;
     try { navigator.wakeLock && navigator.wakeLock.request('screen').then((l) => { wakeLock = l; }).catch(() => {}); } catch (e) { /* なくても よい */ }
   });
+  function applyDone() {
+    const done = new Set(state.done || []), box = $('#showIn');
+    box.querySelectorAll('[data-id]').forEach((el) => el.classList.toggle('done', done.has(el.dataset.id)));
+    const canCheck = !!box.querySelector('.scheck');
+    $('#showReset').hidden = !canCheck;
+    $('#showHint').textContent = canCheck ? 'おわったら タップで ✔' : 'スマホを よこに すると おおきく みえます';
+  }
+  $('#showIn').addEventListener('click', (e) => {
+    const row = e.target.closest('[data-id]');
+    if (!row || !row.querySelector('.scheck')) return;
+    const done = new Set(state.done || []), id = row.dataset.id;
+    if (done.has(id)) done.delete(id); else done.add(id);
+    state.done = [...done];
+    persist();
+    applyDone();
+  });
+  $('#showReset').addEventListener('click', () => { state.done = []; persist(); applyDone(); });
   function closeShow() {
     $('#show').hidden = true;
     if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
@@ -882,10 +1078,11 @@
   }
   // スマホ：きょうゆう メニュー（LINE・ドライブ・「ファイル」に ほぞん など）を だす。
   // Android の Chrome は .json を きょうゆう できない ので .txt でも ためし、それも だめなら ダウンロード。
+  const isTouch = window.matchMedia && matchMedia('(pointer: coarse)').matches;
   async function shareOrDownload(base, text) {
     const tries = [new File([text], base + '.json', { type: 'application/json' }), new File([text], base + '.txt', { type: 'text/plain' })];
     for (const file of tries) {
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      if (isTouch && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: base });
           say('ほぞん しました。もう かたほうの アプリの「ファイルを ひらく」で つかえます。');
@@ -913,7 +1110,7 @@
       try {
         const data = JSON.parse(fr.result);
         if (!data.schedule || !data.voice) throw new Error('bad');
-        commit(); state = Object.assign(defaults(), data); changed();
+        commit(); state = withDefaults(data); changed();
         say('ファイルを ひらきました。');
       } catch (err) { say('この ファイルは ひらけませんでした。', true); }
       e.target.value = '';
