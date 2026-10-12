@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Klee+One:wght@600&display=swap" rel="stylesheet">
 <style id="pagesize">@page { size: A4 portrait; margin: 0; }</style>
 <style>
   /* しくみ：うえに タブと ボタン、ひだりに へんしゅう、みぎに いんさつ する かみの みほん。スマホでは みほん → へんしゅうの じゅん。
@@ -54,8 +54,11 @@
   @media (max-width: 960px) { main { flex-direction: column; align-items: stretch; } .editor { width: auto; max-height: none; } }
   @media (max-width: 700px) {
     header { position: static; }
-    #tabs { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 4px; }
-    #tabs button { flex: none; }
+    #groups, #tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+    .navrow { width: 100%; flex-wrap: nowrap; }
+    #groups { flex: 1; min-width: 0; }
+    #groups button, #tabs button { flex: none; }
+    .homebig { grid-template-columns: 1fr; }
     button { font-size: 14px; padding: 7px 10px; }
     .preview { order: -1; }
     .editor { padding: 10px; }
@@ -83,6 +86,51 @@
   .tips b { color: var(--ui-head); }
   .tips ul { margin: 4px 0 0; padding-left: 18px; }
 
+  /* ---- はじめ・みせる つたえる・つくるの なかの まとまり ---- */
+  .home { max-width: 760px; margin: 0 auto; padding: 32px 16px 24px; text-align: center; }
+  .hometitle { margin: 0 0 6px; font-size: 28px; color: var(--ui-head); text-wrap: balance; }
+  .homelead { margin: 0 0 22px; color: var(--ui-muted); }
+  .homebig { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .bigbtn { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 26px 16px; border-radius: 20px; background: var(--ui-surface); border: 3px solid var(--panel); }
+  .bigbtn:hover { border-color: var(--accent); }
+  .bigbtn .bigicon { display: block; height: 64px; font-family: var(--emoji); font-size: 54px; line-height: 64px; }
+  .bigbtn b { font-size: 22px; }
+  .bigbtn small { font-size: 14px; color: var(--ui-muted); }
+  .homefile { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+  .homefile button { font-size: 14px; }
+  .kids { max-width: 960px; margin: 0 auto; padding: 12px 16px 28px; }
+  .kidsbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .kidsbar b { font-size: 20px; color: var(--ui-head); }
+  .kidsnote { color: var(--ui-muted); margin: 10px 0 14px; }
+  .kidshead { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 6px 0 8px; }
+  .kidshead h2, .kidsh2 { font-size: 18px; margin: 0; color: var(--ui-fg); }
+  .kidsh2 { margin: 24px 0 8px; }
+  .favempty { grid-column: 1 / -1; margin: 0; padding: 14px; font-size: 14px; color: var(--ui-muted); background: var(--ui-soft); border: 2px dashed var(--line); border-radius: 14px; }
+  .kidsmall { font-size: 12px; color: var(--ui-muted); }
+  .favcard { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px; border-radius: 16px; background: var(--ui-surface); border: 2px solid var(--panel); }
+  .favname { width: 100%; font: inherit; font-size: 15px; padding: 5px 8px; border: 2px solid var(--line); border-radius: 10px; background: var(--ui-surface); color: var(--ui-fg); }
+  .favcard .row { justify-content: center; margin: 0; }
+  .favcard button { font-size: 13px; padding: 5px 8px; }
+  .favtools { margin: 10px 0 0; }
+  .shownav { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+  .kidsgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .kidtile { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 8px; border-radius: 18px; background: var(--ui-surface); border: 3px solid var(--panel); }
+  .kidtile:hover { border-color: var(--accent); }
+  .kidicon { width: 84px; height: 84px; font-size: 84px; display: flex; align-items: center; justify-content: center; border-radius: 16px; overflow: hidden; background: #fff; }
+  .kidicon .ic-emo { font-size: .7em; }
+  .kidname { font-size: 17px; line-height: 1.3; word-break: keep-all; overflow-wrap: anywhere; }
+  .navrow { display: flex; gap: 6px; align-items: center; }
+  #groups button { font-weight: bold; }
+  #tabs { width: 100%; padding-top: 2px; }
+  #tabs button { font-size: 14px; padding: 6px 12px; border-radius: 999px; }
+  .filemenu { position: relative; }
+  .filemenu summary { list-style: none; cursor: pointer; font-size: 15px; padding: 8px 12px; border-radius: 12px; border: 2px solid var(--line); background: var(--ui-soft); }
+  .filemenu summary::-webkit-details-marker { display: none; }
+  .filepop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 6; display: flex; flex-direction: column; gap: 6px; padding: 8px; background: var(--ui-surface); border: 2px solid var(--panel); border-radius: 12px; min-width: 200px; }
+  .filepop button { white-space: nowrap; }
+  details.more { margin: 12px 0; border: 2px dashed var(--line); border-radius: 12px; padding: 6px 10px; }
+  details.more summary { cursor: pointer; font-size: 14px; color: var(--ui-muted); }
+
   /* ---- がめんで みせる ---- */
   .show { position: fixed; inset: 0; z-index: 30; background: #222; overflow: auto; padding: calc(env(safe-area-inset-top, 0px) + 56px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px); }
   .showbar { position: fixed; top: 0; left: 0; right: 0; z-index: 31; display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 8px; background: rgba(0,0,0,.7); color: #fff; font-size: 13px; }
@@ -97,14 +145,35 @@
   .showin.landscape { max-width: calc((100dvh - 80px) * 297 / 210); }
   .showin.portrait { max-width: calc((100dvh - 80px) * 210 / 297); }
   .showin .page { max-width: none; }
+  .showbar { flex-wrap: wrap; }
+  .barbtns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .showin [data-say] { cursor: pointer; }
+  .showin .flash { animation: flash .6s ease-out; }
+  @keyframes flash { 0% { transform: scale(1); } 35% { transform: scale(1.04); box-shadow: 0 0 0 1cqw rgba(240, 138, 36, .55); } 100% { transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .showin .flash { animation: none; outline: 1cqw solid rgba(240, 138, 36, .7); } }
+  .kidsnote .speakToggle { margin-left: 6px; font-size: 13px; padding: 4px 10px; }
+  /* タイマー：へって いく あかい えんで のこりを みせる（くらい がめんで みやすい いろに こてい） */
+  .timer { position: fixed; inset: 0; z-index: 30; background: #222; color: #fff; overflow: auto; padding: calc(env(safe-area-inset-top, 0px) + 64px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px); }
+  .timer .showbar button { background: #fff; color: #333; border-color: #fff; }
+  .timerin { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .dial { width: min(78vw, 50vh); aspect-ratio: 1; max-width: 100%; border-radius: 50%; border: 8px solid #fff; background: conic-gradient(#e53935 calc(var(--p, 1) * 1turn), #f4efe6 0); position: relative; }
+  .dial::after { content: ''; position: absolute; left: 50%; top: 50%; width: 9%; height: 9%; transform: translate(-50%, -50%); border-radius: 50%; background: #fff; }
+  .timer.done .dial { background: #f4efe6; }
+  .ttime { font-size: 56px; font-weight: bold; font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+  .timer.done .ttime { color: #ffd54f; }
+  .tpresets, .tctrl { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .tpresets button { background: #333; color: #fff; border-color: #555; font-size: 17px; }
+  .tpresets button.active { background: #e53935; border-color: #e53935; }
+  .tctrl button { font-size: 20px; padding: 12px 22px; }
+  .tctrl button:not(.primary) { background: #fff; color: #333; border-color: #fff; }
 
   /* ---- いんさつ する ページ ---- */
   .page { position: relative; background: #fff; color: #333; container-type: inline-size; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.15); border-radius: 6px; margin: 0 auto 18px; }
   .page.portrait { aspect-ratio: 210 / 297; max-width: 600px; }
   .page.landscape { aspect-ratio: 297 / 210; }
   .pin { position: absolute; inset: 0; padding: 4cqw; display: flex; flex-direction: column; }
-  .ptitle { text-align: center; color: #e65100; font-weight: bold; font-size: 6.4cqw; line-height: 1.3; }
-  .landscape .ptitle { font-size: 4.6cqw; }
+  .ptitle { text-align: center; color: #e65100; font-weight: bold; font-size: calc((6.4cqw) * var(--ts, 1)); line-height: 1.3; }
+  .landscape .ptitle { font-size: calc((4.6cqw) * var(--ts, 1)); }
   .pdate { text-align: right; color: #999; font-size: 2.8cqw; }
   .landscape .pdate { font-size: 2cqw; }
   .ic-emo { font-family: var(--emoji); line-height: 1; }
@@ -118,16 +187,16 @@
   .checkhead { text-align: right; font-size: 2.6cqw; color: #999; margin: 1cqw 2cqw 0 0; }
   .srow { display: flex; align-items: center; gap: 3cqw; height: var(--rh); background: var(--bg); border-left: 2.2cqw solid var(--c); border-radius: 2cqw; padding: 0 2.5cqw 0 2cqw; }
   .srow .ibox { --s: calc(var(--rh) * 0.8); }
-  .slabel { flex: 1; font-size: min(7cqw, calc(var(--rh) * 0.32)); line-height: 1.25; }
-  .stime { width: 12cqw; flex: none; font-size: min(4.2cqw, calc(var(--rh) * 0.24)); color: #555; text-align: center; }
+  .slabel { flex: 1; font-size: calc((min(7cqw, calc(var(--rh) * 0.32))) * var(--ts, 1)); line-height: 1.25; }
+  .stime { width: 12cqw; flex: none; font-size: calc((min(4.2cqw, calc(var(--rh) * 0.24))) * var(--ts, 1)); color: #555; text-align: center; }
   .scheck { width: calc(var(--rh) * 0.62); height: calc(var(--rh) * 0.62); flex: none; border: .6cqw dashed var(--c); border-radius: 50%; background: #fff; }
   /* スケジュール よこ */
   .hrows { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; }
   .hrow { display: flex; align-items: center; justify-content: center; gap: .8cqw; }
   .hcard { width: calc(var(--w) + 2cqw); background: var(--bg); border-top: 1.2cqw solid var(--c); border-radius: 1.6cqw; padding: 1cqw; display: flex; flex-direction: column; align-items: center; gap: .6cqw; }
   .hcard .ibox { --s: var(--w); }
-  .hlabel { font-size: min(2.6cqw, calc(var(--w) * 0.17)); text-align: center; line-height: 1.25; }
-  .htime { font-size: min(2cqw, calc(var(--w) * 0.13)); color: #555; }
+  .hlabel { font-size: calc((min(2.6cqw, calc(var(--w) * 0.17))) * var(--ts, 1)); text-align: center; line-height: 1.25; }
+  .htime { font-size: calc((min(2cqw, calc(var(--w) * 0.13))) * var(--ts, 1)); color: #555; }
   .hcard .scheck { width: calc(var(--w) * 0.36); height: calc(var(--w) * 0.36); }
   .harrow { color: #c8c8c8; font-size: 2.2cqw; }
   .hcard { position: relative; }
@@ -142,12 +211,12 @@
   .whead { background: var(--wc); color: #fff; text-align: center; border-radius: 1.2cqw; font-size: 2.6cqw; font-weight: bold; padding: .4cqw 0; }
   .witem { height: var(--ih); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3cqw; background: var(--bg); border-top: .6cqw solid var(--c); border-radius: 1cqw; padding: .4cqw .3cqw; }
   .witem .ibox { --s: var(--is); border: none; background: transparent; }
-  .wlabel { font-size: var(--fs); text-align: center; line-height: 1.15; word-break: keep-all; overflow-wrap: anywhere; }
+  .wlabel { font-size: calc((var(--fs)) * var(--ts, 1)); text-align: center; line-height: 1.15; word-break: keep-all; overflow-wrap: anywhere; }
   /* きもち ボード */
   .fgrid { flex: 1; display: grid; grid-template-columns: repeat(var(--cols), 1fr); grid-auto-rows: 1fr; gap: 2.4cqw; margin-top: 2cqw; }
   .fcell { background: var(--bg); border: .8cqw solid var(--c); border-radius: 3cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1cqw; min-height: 0; }
   .fcell .ibox { --s: var(--is); border: none; background: transparent; }
-  .flabel { font-size: calc(var(--is) * 0.22); text-align: center; line-height: 1.2; word-break: keep-all; overflow-wrap: anywhere; }
+  .flabel { font-size: calc((calc(var(--is) * 0.22)) * var(--ts, 1)); text-align: center; line-height: 1.2; word-break: keep-all; overflow-wrap: anywhere; }
   /* かわったよ カード */
   .card.change { background: repeating-linear-gradient(-45deg, #ffd54f 0 2.2cqw, #fff3c4 2.2cqw 4.4cqw); border-color: #f57f17; }
   .card.change .ibox { background: #fff; border-radius: 50%; }
@@ -157,7 +226,7 @@
   .rbox { display: flex; align-items: center; gap: 1.6cqw; background: var(--bg); border: .6cqw solid var(--c); border-radius: 2.4cqw; padding: 1cqw 2cqw; }
   .rbox .ibox { --s: 11cqw; border: none; background: transparent; }
   .rcap { font-size: 1.8cqw; color: #777; }
-  .rlabel { font-size: 3.2cqw; }
+  .rlabel { font-size: calc((3.2cqw) * var(--ts, 1)); }
   .rmid { text-align: center; color: #e65100; font-size: 2.6cqw; line-height: 1.4; }
   .rmid b { font-size: 3.6cqw; }
   .rgrid { flex: 1; display: grid; grid-template-columns: repeat(var(--cols), var(--d)); grid-auto-rows: var(--d); gap: 2cqw; justify-content: center; align-content: center; }
@@ -170,33 +239,67 @@
   .vicon { width: 1em; height: 1em; display: flex; align-items: center; justify-content: center; margin-bottom: .8cqw; border-radius: 50%; overflow: hidden; }
   .vicon .ic-emo { font-size: .9em; }
   .vbar { width: 80%; background: var(--c); border-radius: 1.4cqw 1.4cqw 0 0; display: flex; justify-content: center; color: #fff; font-size: 3.4cqw; font-weight: bold; padding-top: .5cqw; }
-  .vlabel { margin-top: 1.4cqw; font-size: 2.4cqw; background: #fff; border: .4cqw solid var(--c); border-radius: 5cqw; padding: .5cqw 1.4cqw; text-align: center; line-height: 1.3; }
-  .vnote { margin-top: 1cqw; font-size: 2cqw; color: #555; text-align: center; line-height: 1.4; }
+  .vlabel { margin-top: 1.4cqw; font-size: calc((2.4cqw) * var(--ts, 1)); background: #fff; border: .4cqw solid var(--c); border-radius: 5cqw; padding: .5cqw 1.4cqw; text-align: center; line-height: 1.3; }
+  .vnote { margin-top: 1cqw; font-size: calc((2cqw) * var(--ts, 1)); color: #555; text-align: center; line-height: 1.4; }
   /* まず・つぎ */
   .ftrow { position: absolute; inset: 4cqw; display: flex; align-items: center; gap: 2.5cqw; }
   .ftbox { flex: 1; height: 100%; border: 1cqw solid var(--c); border-radius: 3cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.4cqw; }
   .fthead { background: var(--c); color: #fff; font-size: 5cqw; padding: .6cqw 5cqw; border-radius: 6cqw; }
   .ftbox .ibox { --s: 27cqw; border: none; }
-  .ftlabel { font-size: 5cqw; text-align: center; }
+  .ftlabel { font-size: calc((5cqw) * var(--ts, 1)); text-align: center; }
   .ftarrow { color: #f08a24; font-size: 7cqw; }
   /* カード */
   .cgrid { position: absolute; inset: 4cqw; display: grid; grid-template-columns: repeat(var(--cols), 1fr); grid-template-rows: repeat(var(--rows), 1fr); }
   .ccell { border: .25cqw dashed #c4c4c4; display: flex; align-items: center; justify-content: center; padding: 1.6cqw; margin: -.125cqw; }
   .card { width: 100%; height: 100%; background: var(--bg); border: .9cqw solid var(--c); border-radius: 3cqw; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1cqw; }
   .card .ibox { --s: calc(var(--cw) * 0.6); border: none; background: transparent; }
-  .clabel { font-size: calc(var(--cw) * 0.11); text-align: center; line-height: 1.2; padding: 0 1cqw; }
+  .clabel { font-size: calc((calc(var(--cw) * 0.11)) * var(--ts, 1)); text-align: center; line-height: 1.2; padding: 0 1cqw; }
 
   /* シール ようし */
   .lab { position: absolute; }
   .lab .lin { position: absolute; inset: var(--pad); border-radius: var(--rad); background: var(--bg); display: flex; flex-direction: var(--dir); align-items: center; justify-content: center; gap: var(--gap); overflow: hidden; }
   .lab.round .lin { border-radius: 50%; }
   .lab .ibox { --s: var(--is); border: none; background: transparent; }
-  .ltext { max-width: var(--tw); font-size: var(--fs); line-height: 1.2; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
+  .ltext { max-width: var(--tw); font-size: calc((var(--fs)) * var(--ts, 1)); line-height: 1.2; text-align: center; word-break: keep-all; overflow-wrap: anywhere; }
   .guide { position: absolute; border: .15cqw dashed #9e9e9e; border-radius: var(--grad); pointer-events: none; }
   .lspec { font-size: 13px; color: var(--ui-muted); background: var(--ui-soft); border-radius: 10px; padding: 8px 10px; line-height: 1.6; }
   .numrow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px 10px; }
   .numrow label { margin: 2px 0; }
   .numrow input { width: 100%; font: inherit; font-size: 15px; padding: 4px 6px; border: 2px solid var(--line); border-radius: 8px; background: var(--ui-surface); color: var(--ui-fg); }
+
+  /* もじカード */
+  .wcard { gap: 1.2cqw; }
+  .wcard .ibox { --s: calc(var(--cw) * 0.48); }
+  .wword { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .5cqw; font-size: calc(var(--fs) * var(--ts, 1)); line-height: 1.15; color: #222; padding: 0 1cqw; }
+  .f-kyo .wword { font-family: "Klee One", "Kosugi Maru", serif; font-weight: 600; }
+  .wword.split { flex-wrap: nowrap; }
+  .wch { display: inline-flex; align-items: center; justify-content: center; width: 1.2em; height: 1.2em; border: .3cqw solid #b8b8b8; border-radius: .8cqw; background: #fff; }
+  .wsp { display: inline-block; width: .4em; }
+  .bpin { position: absolute; inset: 4cqw; display: flex; flex-direction: column; gap: 2cqw; }
+  .bgrid { display: grid; grid-template-columns: repeat(var(--pc), var(--cw) 5cqw var(--cw)); grid-auto-rows: var(--ch); gap: 2cqw 1.5cqw; justify-content: center; }
+  .bgrid .card { width: 100%; height: 100%; }
+  .barrow { display: flex; align-items: center; justify-content: center; color: #f08a24; font-size: 4cqw; }
+  .bslot { border: .5cqw dashed #9e9e9e; border-radius: 3cqw; display: flex; align-items: center; justify-content: center; }
+  .bslot .wword { color: #cfcfcf; }
+  .emptypage { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #999; font-size: 4cqw; }
+
+  /* みやすさ（いんさつ と みせる がめん） */
+  .lk-big { --ts: 1.25; }
+  .lk-thick .ibox { border-width: 1cqw; }
+  .lk-thick .srow { border-left-width: 3.4cqw; }
+  .lk-thick .hcard { border-top-width: 2cqw; }
+  .lk-thick .card, .lk-thick .fcell, .lk-thick .ftbox { border-width: 1.6cqw; }
+  .lk-thick .witem { border-top-width: 1.2cqw; }
+  .lk-thick .vlabel, .lk-thick .rbox { border-width: .9cqw; }
+  .lk-thick .scheck, .lk-thick .rdot, .lk-thick .bslot { border-width: 1cqw; }
+  .lk-hc .page { color: #000; }
+  .lk-hc .srow, .lk-hc .hcard, .lk-hc .card:not(.change), .lk-hc .fcell, .lk-hc .witem, .lk-hc .rbox, .lk-hc .lab .lin, .lk-hc .vcol, .lk-hc .wcol { background: #fff; }
+  .lk-hc .pdate, .lk-hc .checkhead, .lk-hc .stime, .lk-hc .htime, .lk-hc .vnote, .lk-hc .rcap, .lk-hc .wword { color: #000; }
+  .lk-hc .bslot .wword { color: #bdbdbd; }
+  .lookrow { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+  .lookrow .row { margin: 0; flex-wrap: nowrap; }
+  .lookrow button { white-space: nowrap; font-size: 13px; padding: 5px 10px; }
+  .looknote { font-size: 12px; color: var(--ui-muted); margin: 2px 0 0; max-width: 240px; }
 
   /* えらぶ まど */
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 20; display: flex; align-items: center; justify-content: center; padding: 12px; }
@@ -212,7 +315,7 @@
   .photo { display: block; margin-top: 12px; padding: 10px; border: 2px dashed var(--line); border-radius: 12px; font-size: 15px; }
 
   @media print {
-    header, .editor, #status, .modal, .show { display: none !important; }
+    header, .editor, #status, .modal, .show, .home, .kids, .timer { display: none !important; }
     body { background: #fff; }
     main { display: block; padding: 0; }
     .page { box-shadow: none; border-radius: 0; margin: 0; max-width: none; break-after: page; page-break-after: always; }
@@ -223,37 +326,67 @@
 </style>
 </head>
 <body>
-<header>
-  <div class="group" id="tabs">
-    <button data-tab="schedule">📅 スケジュール</button>
-    <button data-tab="steps">🔢 てじゅん</button>
-    <button data-tab="firstThen">➡ まず・つぎ</button>
-    <button data-tab="voice">🔊 こえの ものさし</button>
-    <button data-tab="feel">😊 きもち ボード</button>
-    <button data-tab="change">🔄 かわったよ</button>
-    <button data-tab="reward">⭐ ごほうび</button>
-    <button data-tab="cards">🃏 えカード</button>
-    <button data-tab="label">🏷 シール ようし</button>
+<section class="home" id="home">
+  <h1 class="hometitle">しかくしえん カード</h1>
+  <p class="homelead">え と ことばで、みとおしを つたえる カードを つくります。</p>
+  <div class="homebig">
+    <button class="bigbtn" data-go="kids"><span class="bigicon">👀</span><b>みせる・つたえる</b><small>こどもと いっしょに、がめんで みる</small></button>
+    <button class="bigbtn" data-go="make"><span class="bigicon">✏️</span><b>つくる</b><small>カードを つくる・なおす・いんさつ する</small></button>
   </div>
+  <div class="homefile"><button data-file="save" id="homeSave">💾 ファイルに ほぞん</button><button data-file="open">📂 ファイルを ひらく</button></div>
+</section>
+
+<section class="kids" id="kids" hidden>
+  <div class="kidsbar"><button data-go="home">🏠 はじめ</button><b>みせる・つたえる</b><button data-go="make">✏️ つくる</button></div>
+  <p class="kidsnote">みせたい ものを タップすると、がめん いっぱいに でます。でた カードを タップすると、ことばを よみあげます。<button class="speakToggle"></button></p>
+  <div class="kidshead"><h2>⭐ おきにいり</h2><button id="favManage">⚙ せいり</button></div>
+  <div class="kidsgrid" id="favGrid"></div>
+  <div class="favtools" id="favTools" hidden>
+    <button id="favImport">📂 ファイルから おきにいりを くわえる</button>
+    <input type="file" id="favInput" accept=".json,.txt,application/json,text/plain" hidden>
+  </div>
+  <h2 class="kidsh2">いま つくって いる もの</h2>
+  <div class="kidsgrid" id="kidsGrid"></div>
+</section>
+
+<header id="makeBar" hidden>
+  <div class="group navrow"><button data-go="home" title="はじめの がめん">🏠</button><div class="group" id="groups"></div></div>
+  <div class="group" id="tabs"></div>
   <div class="group">
     <button id="undo">↩ もどす</button>
     <button id="showBtn">📺 みせる</button>
+    <button id="favBtn">⭐ のこす</button>
     <button id="print" class="primary">🖨 いんさつ</button>
     <button id="printFile" class="primary" hidden>🖨 いんさつ よう ファイル</button>
-    <button id="saveFile">💾 ファイルに ほぞん</button>
-    <button id="openFile">📂 ファイルを ひらく</button>
+    <details class="filemenu"><summary>📁 ファイル</summary>
+      <div class="filepop">
+        <button id="saveFile">💾 ファイルに ほぞん</button>
+        <button id="openFile">📂 ファイルを ひらく</button>
+      </div>
+    </details>
+    <details class="filemenu lookmenu"><summary>👓 みやすさ</summary><div class="filepop" id="lookPop"></div></details>
     <input type="file" id="openInput" accept=".json,.txt,application/json,text/plain" hidden>
   </div>
 </header>
 <div id="status"></div>
-<main>
+<main id="makeMain" hidden>
   <section class="editor" id="editor"></section>
   <section class="preview" id="preview"></section>
 </main>
 
 <div class="show" id="show" hidden>
-  <div class="showbar"><span id="showHint">スマホを よこに すると おおきく みえます</span><button id="showReset" hidden>✔ ぜんぶ けす</button><button id="showClose">✕ とじる</button></div>
+  <div class="showbar"><span class="shownav" id="showNav" hidden><button id="showPrev" aria-label="まえ">◀</button><span id="showPos"></span><button id="showNext" aria-label="つぎ">▶</button></span><span id="showHint">スマホを よこに すると おおきく みえます</span><span class="barbtns"><button class="speakToggle"></button><button id="showReset" hidden>✔ ぜんぶ けす</button><button id="showClose">✕ とじる</button></span></div>
   <div class="showin" id="showIn"></div>
+</div>
+
+<div class="timer" id="timer" hidden>
+  <div class="showbar"><span>⏰ タイマー</span><span class="barbtns"><button class="speakToggle"></button><button id="timerClose">✕ とじる</button></span></div>
+  <div class="timerin">
+    <div class="dial" id="dial"></div>
+    <div class="ttime" id="ttime">5:00</div>
+    <div class="tpresets" id="tpresets"></div>
+    <div class="tctrl"><button id="tStart" class="primary">▶ スタート</button><button id="tReset">↺ もういちど</button></div>
+  </div>
 </div>
 
 <div class="modal" id="picker" hidden>
@@ -334,6 +467,14 @@
   function defaults() {
     return {
       tab: 'schedule',
+      ui: { speak: true, timerMin: 5 },
+      favs: [],  // おきにいり：{ id, tab, name, data（その ときの うつし） }
+      look: { text: 'normal', line: 'normal', contrast: 'normal' },
+      words: {
+        size: 'm', font: 'maru', split: false, hint: true,
+        show: { both: true, word: true, board: false },
+        items: [it('🚌', 'バス', 'out'), it('🐶', 'いぬ', 'animal'), it('🐱', 'ねこ', 'animal'), it('🍎', 'りんご', 'food'), it('🍌', 'バナナ', 'food'), it('🚗', 'くるま', 'out')],
+      },
       schedule: {
         title: 'きょうの よてい', orient: 'v', showTime: false, showCheck: true, dateMode: 'blank', date: '',
         // しゅうかん よてい（れい）
@@ -459,7 +600,7 @@
     const is = Math.min(colW * 0.7, ih * 0.58), fs = Math.min(2.4, colW * 0.16, ih * 0.2);
     const mon = weekMonday(w);
     const cols = days.map((d, i) => `<div class="wcol" style="--wc:${WEEK_COLORS[i]}"><div class="whead">${esc(d.name)}${mon ? `<span class="wdate">${addDays(mon, i).getDate()}</span>` : ''}</div>
-      ${d.items.map((x) => `<div class="witem" style="${catStyle(x.cat)}"><div class="ibox">${iconHtml(x.icon)}</div><div class="wlabel">${esc(x.label)}</div></div>`).join('')}</div>`).join('');
+      ${d.items.map((x) => `<div class="witem" data-say="${esc(x.label)}" style="${catStyle(x.cat)}"><div class="ibox">${iconHtml(x.icon)}</div><div class="wlabel">${esc(x.label)}</div></div>`).join('')}</div>`).join('');
     return { orient: 'landscape', html: `<div class="page landscape" style="--days:${nd};--ih:${ih.toFixed(2)}cqw;--is:${is.toFixed(2)}cqw;--fs:${fs.toFixed(2)}cqw"><div class="pin">
       <div class="ptitle">${esc(w.title)}</div>${weekDateLine(w, nd)}
       <div class="wgrid">${cols}</div></div></div>` };
@@ -470,7 +611,7 @@
     const head = `<div class="ptitle">${esc(d.title)}</div>${dayDateLine(d)}`;
     if (d.orient === 'v') {
       const rh = Math.max(6, Math.min(24, (d.showCheck ? 108 : 112) / Math.max(1, n) - 1.8));
-      const rows = d.items.map((x) => `<div class="srow" data-id="${x.id}" style="${catStyle(x.cat)}">
+      const rows = d.items.map((x) => `<div class="srow" data-id="${x.id}" data-say="${esc(x.label)}" style="${catStyle(x.cat)}">
           ${d.showTime ? `<div class="stime">${esc(x.time)}</div>` : ''}
           <div class="ibox">${iconHtml(x.icon)}</div>
           <div class="slabel">${esc(x.label)}</div>
@@ -489,7 +630,7 @@
     w = Math.min(w, (52 / nRows - 8.5 - (o.showTime ? 3 : 0)) / (1 + (o.showCheck ? 0.36 : 0)));
     const chunks = [items.slice(0, perRow), items.slice(perRow)].filter((c) => c.length);
     const rows = chunks.map((c, r) => `<div class="hrow">${c.map((x, j) => `${j ? '<div class="harrow">▶</div>' : ''}
-        <div class="hcard" data-id="${x.id}" style="${catStyle(x.cat)}">
+        <div class="hcard" data-id="${x.id}" data-say="${esc(x.label)}" style="${catStyle(x.cat)}">
           ${o.numbered ? `<div class="hnum">${r * perRow + j + 1}</div>` : ''}
           ${o.showTime ? `<div class="htime">${esc(x.time)}</div>` : ''}
           <div class="ibox">${iconHtml(x.icon)}</div>
@@ -505,7 +646,7 @@
     const cols = n <= 4 ? 2 : n <= 9 ? 3 : 4, rows = Math.ceil(n / cols);
     const cellH = (124 - (rows - 1) * 2.4) / rows, cellW = (92 - (cols - 1) * 2.4) / cols;
     const is = Math.min(cellW * 0.62, cellH * 0.6);
-    const cells = d.items.map((x) => `<div class="fcell" style="${catStyle(x.cat)}"><div class="ibox">${iconHtml(x.icon)}</div><div class="flabel">${esc(x.label)}</div></div>`).join('');
+    const cells = d.items.map((x) => `<div class="fcell" data-say="${esc(x.label)}" style="${catStyle(x.cat)}"><div class="ibox">${iconHtml(x.icon)}</div><div class="flabel">${esc(x.label)}</div></div>`).join('');
     return { orient: 'portrait', html: `<div class="page portrait" style="--cols:${cols};--is:${is.toFixed(2)}cqw"><div class="pin"><div class="ptitle">${esc(d.title)}</div><div class="fgrid">${cells}</div></div></div>` };
   }
   function rewardPages(d) {
@@ -526,7 +667,7 @@
     const cols = d.levels.map((l, i) => {
       const t = n > 1 ? i / (n - 1) : 1;
       const s = 7 + t * 10, bh = 4 + ((i + 1) / n) * 14;
-      return `<div class="vcol" style="--c:${l.color}">
+      return `<div class="vcol" data-say="${esc(l.label)}" style="--c:${l.color}">
         <div class="vvis"><div class="vicon" style="font-size:${s.toFixed(2)}cqw">${iconHtml(l.icon)}</div>
           <div class="vbar" style="height:${bh.toFixed(2)}cqw">${i + 1}</div></div>
         <div class="vlabel">${esc(l.label)}</div><div class="vnote">${esc(l.note)}</div></div>`;
@@ -534,7 +675,7 @@
     return { orient: 'landscape', html: `<div class="page landscape"><div class="pin"><div class="ptitle">${esc(d.title)}</div><div class="vrow">${cols}</div></div></div>` };
   }
   function firstThenPages(d) {
-    const box = (word, x, c) => `<div class="ftbox" style="--c:${c}"><div class="fthead">${esc(word)}</div>
+    const box = (word, x, c) => `<div class="ftbox" data-say="${esc(word)} ${esc(x.label)}" style="--c:${c}"><div class="fthead">${esc(word)}</div>
       <div class="ibox">${iconHtml(x.icon)}</div><div class="ftlabel">${esc(x.label)}</div></div>`;
     return { orient: 'landscape', html: `<div class="page landscape"><div class="ftrow">${box(d.firstWord, d.first, '#1e88e5')}<div class="ftarrow">▶</div>${box(d.thenWord, d.then, '#43a047')}</div></div>` };
   }
@@ -598,20 +739,65 @@
     return { orient: 'portrait', html };
   }
   function changePages(d) { return cardPages(d, 'change'); }
+  // もじカード：「みる → あわせる → えらぶ → いう」（See and Learn を さんこう）に つかう ざいりょう
+  function wordPages(d) {
+    const cols = { l: 2, m: 3, s: 4 }[d.size] || 3, rows = { l: 3, m: 4, s: 5 }[d.size] || 4, per = cols * rows;
+    const cw = 92 / cols, ch = 133 / rows;
+    const fcls = d.font === 'kyokasho' ? 'f-kyo' : '';
+    const show = d.show || {};
+    const wordHtml = (x, w, hmax) => {
+      const chars = [...String(x.label || '')];
+      const isSp = (c) => c === ' ' || c === '　';
+      let fs;
+      if (d.split) {
+        // ます（1.2もじぶん）＋ すきま 0.5cqw を 1ぎょうに おさめる
+        const boxes = chars.filter((c) => !isSp(c)).length, spaces = chars.length - boxes;
+        fs = Math.min(hmax, (w * 0.74 - 0.5 * Math.max(0, chars.length - 1)) / Math.max(1, boxes * 1.2 + spaces * 0.4));
+      } else {
+        fs = Math.min(hmax, (w * 0.84) / Math.max(1, chars.reduce((a, c) => a + (isSp(c) ? 0.4 : 1), 0)));
+      }
+      const inner = d.split ? chars.map((c) => (c === ' ' || c === '　' ? '<span class="wsp"></span>' : `<span class="wch">${esc(c)}</span>`)).join('') : esc(x.label);
+      return `<div class="wword${d.split ? ' split' : ''}" style="--fs:${fs.toFixed(2)}cqw">${inner}</div>`;
+    };
+    const card = (x, withPic) => `<div class="card wcard" data-say="${esc(x.label)}" style="${catStyle(x.cat)};--cw:${cw.toFixed(2)}cqw">
+      ${withPic ? `<div class="ibox">${iconHtml(x.icon)}</div>` : ''}${wordHtml(x, cw, withPic ? ch * 0.2 : ch * 0.36)}</div>`;
+    let html = '';
+    const cardSheets = (withPic) => {
+      for (let p = 0; p < Math.ceil(d.items.length / per); p++) {
+        const cells = d.items.slice(p * per, (p + 1) * per).map((x) => `<div class="ccell">${card(x, withPic)}</div>`).join('');
+        html += `<div class="page portrait ${fcls}" style="--cols:${cols};--rows:${rows};--cw:${cw.toFixed(2)}cqw"><div class="cgrid">${cells}</div></div>`;
+      }
+    };
+    if (show.both) cardSheets(true);
+    if (show.word) cardSheets(false);
+    if (show.board && d.items.length) {
+      // あわせっこ シート：ひだりに え と もじ、みぎに もじだけの カードを おく わく（もじカードと おなじ おおきさ）
+      const pc = Math.max(1, Math.floor(94 / (cw * 2 + 8.5))), br = Math.max(1, Math.floor(127 / (ch + 2)));
+      for (let p = 0; p < Math.ceil(d.items.length / (pc * br)); p++) {
+        const cells = d.items.slice(p * pc * br, (p + 1) * pc * br).map((x) => `${card(x, true)}<div class="barrow">▶</div>
+          <div class="bslot">${d.hint ? wordHtml(x, cw, ch * 0.36) : ''}</div>`).join('');
+        html += `<div class="page portrait ${fcls}"><div class="bpin"><div class="ptitle">おなじ ことばを あわせよう</div>
+          <div class="bgrid" style="--pc:${pc};--cw:${(cw - 3.2).toFixed(2)}cqw;--ch:${(ch - 3.2).toFixed(2)}cqw">${cells}</div></div></div>`;
+      }
+    }
+    if (!html) html = '<div class="page portrait"><div class="emptypage">いんさつ する ものを えらんで ください</div></div>';
+    return { orient: 'portrait', html };
+  }
   function cardPages(d, variant = '') {
     const cols = { l: 2, m: 3, s: 4 }[d.size] || 3, rows = { l: 3, m: 4, s: 5 }[d.size] || 4, per = cols * rows;
     const cw = 92 / cols;
     let html = '';
     for (let p = 0; p < Math.max(1, Math.ceil(d.items.length / per)); p++) {
-      const cells = d.items.slice(p * per, (p + 1) * per).map((x) => `<div class="ccell"><div class="card ${variant}" style="${catStyle(x.cat)}">
+      const cells = d.items.slice(p * per, (p + 1) * per).map((x) => `<div class="ccell"><div class="card ${variant}" data-say="${esc(x.label)}" style="${catStyle(x.cat)}">
         <div class="ibox">${iconHtml(x.icon)}</div><div class="clabel">${esc(x.label)}</div></div></div>`).join('');
       html += `<div class="page portrait" style="--cols:${cols};--rows:${rows};--cw:${cw.toFixed(2)}cqw"><div class="cgrid">${cells}</div></div>`;
     }
     return { orient: 'portrait', html };
   }
-  const PAGES = { schedule: schedulePages, steps: stepsPages, voice: voicePages, firstThen: firstThenPages, feel: feelPages, change: changePages, reward: rewardPages, cards: (d) => cardPages(d), label: labelPages };
+  const PAGES = { schedule: schedulePages, steps: stepsPages, voice: voicePages, firstThen: firstThenPages, feel: feelPages, change: changePages, reward: rewardPages, cards: (d) => cardPages(d), label: labelPages, words: wordPages };
   function renderPreview() {
     const r = PAGES[state.tab](state[state.tab]);
+    previewEl.className = 'preview ' + lookClass();
     previewEl.innerHTML = r.html;
     $('#pagesize').textContent = `@page { size: A4 ${r.orient}; margin: 0; }`;
   }
@@ -683,6 +869,15 @@
       <li>つかいかけの ようしは「はじめる ばしょ」で つづきから いんさつ できます（ひだりうえが 1、みぎへ じゅんばん）。</li>
       <li>パッケージの <b>フォーマットばんごう（F12A4-1 など）</b>が おなじ なら、ほかの ひんばんでも おなじ ように つかえます。</li>
       <li>リストに ない ようしは「じぶんで すんぽうを いれる」を えらび、パッケージや メーカーの サイトの すうじを いれます。</li></ul>`,
+    words: `<b>つかいかた（4つの だんかい）</b><ul>
+      <li><b>みる</b>：え と もじの カードを みせながら「バス」と いう。</li>
+      <li><b>あわせる</b>：もじだけの カードを、シートの おなじ ことばの ところに おく。</li>
+      <li><b>えらぶ</b>：もじだけの カードを 2〜3まい ならべて「バスは どれ？」</li>
+      <li><b>いう</b>：もじだけの カードを みせて、よんで もらう（いえなくても、ゆびさしでも OK）。</li>
+      <li>まちがえない ように すくない まいすう（2まい）から はじめ、できたら すぐ ほめます。</li>
+      <li>のりもの・どうぶつ など、<b>すきな ものの ことば</b>から はじめると たのしく つづけられます。</li>
+      <li>「1もじずつ わける」と、1もじ 1おとに きづく きっかけに なります。</li>
+      <li>「みせる・つたえる」で ひらくと、カードを タップして よみあげも できます。</li></ul>`,
     reward: `<b>つかいかたの ヒント</b><ul>
       <li>「がんばること」は <b>ひとつだけ</b>に しぼると わかりやすく なります。</li>
       <li>はじめは <b>5こ くらいの すくない かず</b>から。すぐに「たまった！」を けいけん できる ように します。</li>
@@ -768,15 +963,31 @@
           <p style="font-size:13px;color:#777">ピッチ ＝ 1まいめの ひだりはし（うえはし）から 2まいめの ひだりはし（うえはし）までの ながさ</p>
           <label><input type="checkbox" data-path="label.custom" data-field="round" ${c.round ? 'checked' : ''}> まるい シール</label>` : ''}
         <h4>ならべかた</h4>${seg('label', 'mode', d.mode, [['repeat', 'くりかえして ぜんぶ うめる'], ['list', 'じゅんばんに 1かいずつ']])}
+        <details class="more" data-more="label" ${openMore.has('label') ? 'open' : ''}><summary>⚙ くわしい せってい（はじめる ばしょ・ずれの ちょうせい など）</summary>
         <div class="numrow"><label>はじめる ばしょ（1〜${per}）<input type="number" min="1" max="${per}" step="1" data-path="label" data-field="start" value="${esc(d.start)}"></label></div>
         <label><input type="checkbox" data-path="label" data-field="color" ${d.color ? 'checked' : ''}> しゅるいの いろを ぬる</label>
         <label><input type="checkbox" data-path="label" data-field="outline" ${d.outline ? 'checked' : ''}> わくせんも いんさつする（ためしずり よう）</label>
         <h4>ずれの ちょうせい（mm）</h4>
         <div class="numrow"><label>よこ（＋で みぎへ）<input type="number" step="0.5" data-path="label" data-field="offX" value="${esc(d.offX)}"></label>
           <label>たて（＋で したへ）<input type="number" step="0.5" data-path="label" data-field="offY" value="${esc(d.offY)}"></label></div>
+        </details>
         <h4>シールの なかみ（${d.items.length}）</h4>
         ${d.items.map((x, i) => itemRow(`label.items.${i}`, x, { cat: true, list: 'label.items', i })).join('')}
         <button data-act="add" data-list="label.items">＋ ふやす</button>`;
+    } else if (t === 'words') {
+      const sh = d.show || {};
+      const chk = (field, label) => `<label><input type="checkbox" data-path="words.show" data-field="${field}" ${sh[field] ? 'checked' : ''}> ${label}</label>`;
+      h += `<h3>🔤 もじカード</h3>
+        <p style="font-size:13px;color:var(--ui-muted);margin:0 0 6px">え と もじを いっしょに みせて、もじを てがかりに ことばを そだてる ための カードです。</p>
+        <h4>いんさつ する もの</h4>
+        ${chk('both', 'え と もじの カード（みる）')}${chk('word', 'もじだけの カード（あわせる・えらぶ・いう）')}${chk('board', 'おなじ ことばを あわせよう シート')}
+        <h4>おおきさ</h4>${seg('words', 'size', d.size, [['l', 'おおきい（6まい）'], ['m', 'ふつう（12まい）'], ['s', 'ちいさい（20まい）']])}
+        <h4>もじの かたち</h4>${seg('words', 'font', d.font, [['maru', 'まるもじ'], ['kyokasho', 'きょうかしょ たい']])}
+        <label><input type="checkbox" data-path="words" data-field="split" ${d.split ? 'checked' : ''}> 1もじずつ ますに わける</label>
+        ${sh.board ? `<label><input type="checkbox" data-path="words" data-field="hint" ${d.hint ? 'checked' : ''}> あわせっこ シートの わくに うすく もじを いれる</label>` : ''}
+        <h4>ことば（${d.items.length}）</h4>
+        ${d.items.map((x, i) => itemRow(`words.items.${i}`, x, { cat: true, list: 'words.items', i })).join('')}
+        <button data-act="add" data-list="words.items">＋ ことばを ふやす</button>`;
     } else if (t === 'reward') {
       h += `<h3>⭐ ごほうび シール だいし</h3>
         <label>タイトル<input type="text" data-path="reward" data-field="title" value="${esc(d.title)}"></label>
@@ -792,7 +1003,7 @@
     }
     h += `<div class="tips">${TIPS[t]}</div>`;
     editorEl.innerHTML = h;
-    document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === t));
+    renderNav();
   }
 
   editorEl.addEventListener('click', (e) => {
@@ -983,6 +1194,262 @@
     }
   }
 
+  // ---------- がめん：はじめ／みせる・つたえる／つくる ----------
+  const GROUPS = [
+    { id: 'day', name: '📅 まいにちの よてい', tabs: ['schedule', 'steps', 'firstThen'] },
+    { id: 'feel', name: '💗 きもち・やくそく', tabs: ['voice', 'feel', 'change', 'reward'] },
+    { id: 'print', name: '🖨 いんさつ よう', tabs: ['cards', 'words', 'label'] },
+  ];
+  const TAB_NAMES = { schedule: '📅 スケジュール', steps: '🔢 てじゅん', firstThen: '➡ まず・つぎ', voice: '🔊 こえの ものさし', feel: '😊 きもち ボード',
+    change: '🔄 かわったよ', reward: '⭐ ごほうび', cards: '🃏 えカード', words: '🔤 もじカード', label: '🏷 シール ようし' };
+  function renderNav() {
+    const g = GROUPS.find((x) => x.tabs.includes(state.tab)) || GROUPS[0];
+    $('#groups').innerHTML = GROUPS.map((x) => `<button data-group="${x.id}" class="${x === g ? 'active' : ''}">${x.name}</button>`).join('');
+    $('#tabs').innerHTML = g.tabs.map((t) => `<button data-tab="${t}" class="${t === state.tab ? 'active' : ''}">${TAB_NAMES[t]}</button>`).join('');
+    if (typeof updateFavBtn === 'function') updateFavBtn();
+  }
+  $('#groups').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-group]');
+    if (!b) return;
+    const g = GROUPS.find((x) => x.id === b.dataset.group);
+    if (g.tabs.includes(state.tab)) return;
+    state.tab = g.tabs[0];
+    say('');
+    changed();
+  });
+
+  // ---------- よみあげ（スマホ・パソコンに はいって いる よみあげ きのうを つかう） ----------
+  const canSpeak = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
+  function speakOn() { return canSpeak && !(state.ui && state.ui.speak === false); }
+  function jaVoice() {
+    const vs = speechSynthesis.getVoices();
+    return vs.find((v) => /^ja/i.test(v.lang) && v.localService) || vs.find((v) => /^ja/i.test(v.lang)) || null;
+  }
+  function speak(text) {
+    if (!speakOn() || !text) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP';
+      u.rate = 0.85;  // こどもに ききとりやすい よう すこし ゆっくり
+      const v = jaVoice();
+      if (v) u.voice = v;
+      speechSynthesis.speak(u);
+    } catch (e) { /* よみあげが なくても ほかは うごく */ }
+  }
+  function renderSpeakToggles() {
+    document.querySelectorAll('.speakToggle').forEach((b) => {
+      b.hidden = !canSpeak;
+      b.textContent = speakOn() ? '🔊 よみあげ オン' : '🔇 よみあげ オフ';
+    });
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.speakToggle')) return;
+    state.ui = Object.assign({}, state.ui, { speak: !speakOn() });
+    persist();
+    renderSpeakToggles();
+    if (speakOn()) speak('よみあげ オン');
+  });
+  function flash(el) { el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+
+  // ---------- みやすさ ----------
+  function lookClass() {
+    const l = state.look || {};
+    return [l.text === 'big' ? 'lk-big' : '', l.line === 'bold' ? 'lk-thick' : '', l.contrast === 'high' ? 'lk-hc' : ''].join(' ').trim();
+  }
+  function renderLook() {
+    const l = state.look || {};
+    const row = (field, label, opts) => `<div class="lookrow">${label}<div class="row">${opts.map(([v, t]) =>
+      `<button data-look="${field}" data-v="${v}" class="${(l[field] || 'normal') === v ? 'active' : ''}">${t}</button>`).join('')}</div></div>`;
+    $('#lookPop').innerHTML = row('text', 'もじの おおきさ', [['normal', 'ふつう'], ['big', 'おおきめ']])
+      + row('line', 'せんの ふとさ', [['normal', 'ふつう'], ['bold', 'ふとめ']])
+      + row('contrast', 'いろ', [['normal', 'ふつう'], ['high', 'しろじで はっきり']])
+      + '<p class="looknote">みえかたが きに なる ときに。ぜんぶの ページの いんさつ と「みせる」に はんえい されます。</p>';
+  }
+  $('#lookPop').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-look]');
+    if (!b) return;
+    state.look = Object.assign({}, state.look, { [b.dataset.look]: b.dataset.v });
+    persist();
+    renderLook();
+    renderPreview();
+  });
+  renderLook();
+
+  // ---------- みせる・つたえる：おきにいり と いま つくって いる もの ----------
+  const KID_TABS = ['schedule', 'steps', 'firstThen', 'voice', 'feel', 'cards', 'words'];
+  const FAV_TABS = ['schedule', 'steps', 'firstThen', 'voice', 'feel', 'change', 'reward', 'cards', 'words'];
+  const emojiIcon = (v) => ({ t: 'emoji', v });
+  const firstIcon = (arr, def) => (arr && arr[0] ? arr[0].icon : emojiIcon(def));
+  // ページの なまえ と え（タイルに だす）
+  function pageInfo(tab, d) {
+    switch (tab) {
+      case 'schedule': return d.orient === 'w' ? [d.week.title, emojiIcon('🗓️')] : [d.title, firstIcon(d.items, '📅')];
+      case 'steps': return [d.title, firstIcon(d.items, '🔢')];
+      case 'firstThen': return [`${d.first.label} → ${d.then.label}`, d.first.icon];
+      case 'voice': return [d.title, firstIcon(d.levels, '🔊')];
+      case 'feel': return [d.title, firstIcon(d.items, '😊')];
+      case 'change': return ['かわったよ', firstIcon(d.items, '🔄')];
+      case 'reward': return [d.title, d.task.icon];
+      case 'cards': return ['えカード', firstIcon(d.items, '🃏')];
+      case 'words': return ['もじカード', firstIcon(d.items, '🔤')];
+      default: return [TAB_NAMES[tab] || tab, emojiIcon('⭐')];
+    }
+  }
+  const tile = (attrs, icon, name, small) => `<button class="kidtile" ${attrs}><span class="kidicon">${iconHtml(icon)}</span>`
+    + `<span class="kidname">${esc(name)}</span>${small ? `<span class="kidsmall">${esc(small)}</span>` : ''}</button>`;
+  let favManage = false, pendingDel = null, editingFav = null;
+  function renderKids() {
+    const favs = state.favs || [];
+    $('#favManage').textContent = favManage ? '✔ せいり おわり' : '⚙ せいり';
+    $('#favTools').hidden = !favManage;
+    if (!favs.length) {
+      $('#favGrid').innerHTML = '<p class="favempty">「つくる」で ⭐ を おすと、ここに のこせます。よく つかう スケジュールや てじゅんを いれて おくと、すぐ みせられます。</p>';
+    } else if (!favManage) {
+      $('#favGrid').innerHTML = favs.map((f, i) => tile(`data-fav="${i}"`, pageInfo(f.tab, f.data)[1], f.name, (TAB_NAMES[f.tab] || '').replace(/^\S+\s/, ''))).join('');
+    } else {
+      $('#favGrid').innerHTML = favs.map((f, i) => `<div class="favcard"><span class="kidicon">${iconHtml(pageInfo(f.tab, f.data)[1])}</span>
+        <input type="text" class="favname" data-fav-name="${i}" value="${esc(f.name)}" aria-label="なまえ">
+        <div class="row"><button data-fav-move="${i}" data-d="-1" aria-label="まえへ">◀</button><button data-fav-move="${i}" data-d="1" aria-label="うしろへ">▶</button>
+          <button data-fav-edit="${i}">✏ なおす</button>
+          <button data-fav-del="${i}" class="danger">${pendingDel === f.id ? 'ほんとうに けす？' : '🗑 けす'}</button></div></div>`).join('');
+    }
+    $('#kidsGrid').innerHTML = KID_TABS.map((t) => { const [n, ic] = pageInfo(t, state[t]); return tile(`data-show="${t}"`, ic, n); }).join('')
+      + tile('data-timer="1"', emojiIcon('⏰'), 'タイマー');
+  }
+  $('#kidsGrid').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-show]');
+    if (b) {
+      const list = KID_TABS.map((t) => ({ tab: t, data: state[t] }));
+      openShow(b.dataset.show, null, { list, i: KID_TABS.indexOf(b.dataset.show) });
+    }
+    if (e.target.closest('button[data-timer]')) openTimer();
+  });
+  $('#favManage').addEventListener('click', () => { favManage = !favManage; pendingDel = null; renderKids(); });
+  $('#favGrid').addEventListener('click', (e) => {
+    const favs = state.favs || [];
+    const t = e.target.closest('[data-fav]');
+    if (t) {
+      const list = favs.map((f) => ({ tab: f.tab, data: f.data })), i = +t.dataset.fav;
+      openShow(list[i].tab, list[i].data, { list, i });
+      return;
+    }
+    const mv = e.target.closest('[data-fav-move]');
+    if (mv) {
+      const i = +mv.dataset.favMove, j = i + (+mv.dataset.d);
+      if (j < 0 || j >= favs.length) return;
+      [favs[i], favs[j]] = [favs[j], favs[i]];
+      persist(); renderKids();
+      return;
+    }
+    const ed = e.target.closest('[data-fav-edit]');
+    if (ed) {
+      const f = favs[+ed.dataset.favEdit];
+      commit();
+      state[f.tab] = JSON.parse(JSON.stringify(f.data));
+      state.tab = f.tab;
+      editingFav = f.id;
+      favManage = false;
+      setView('make');
+      changed();
+      say(`「${f.name}」を ひらきました。なおしたら「⭐ うわがき」で おきにいりに もどせます。`);
+      return;
+    }
+    const del = e.target.closest('[data-fav-del]');
+    if (del) {
+      // けす ときは もういちど おして もらう（まちがい ぼうし）
+      const i = +del.dataset.favDel, f = favs[i];
+      if (pendingDel !== f.id) { pendingDel = f.id; renderKids(); return; }
+      favs.splice(i, 1);
+      if (editingFav === f.id) editingFav = null;
+      pendingDel = null;
+      persist(); renderKids();
+      say(`「${f.name}」を けしました。`);
+    }
+  });
+  $('#favGrid').addEventListener('input', (e) => {
+    const el = e.target.closest('[data-fav-name]');
+    if (!el) return;
+    state.favs[+el.dataset.favName].name = el.value;
+    persist();
+  });
+  // ファイルから くわえる：ファイルの おきにいり（なければ その ファイルの ページ）を くわえる
+  $('#favImport').addEventListener('click', () => $('#favInput').click());
+  $('#favInput').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      try {
+        const data = withDefaults(JSON.parse(fr.result));
+        let add = (data.favs || []).filter((f) => f && FAV_TABS.includes(f.tab) && f.data);
+        if (!add.length) {
+          // おきにいりが ない ふるい ファイル：さいしょの れいの まま の ページは くわえない
+          const plain = (v) => JSON.stringify(v, (k, x) => (k === 'id' ? undefined : x));
+          const def = defaults();
+          add = KID_TABS.filter((t) => plain(data[t]) !== plain(def[t])).map((t) => ({ id: uid(), tab: t, name: pageInfo(t, data[t])[0], data: data[t] }));
+        }
+        const have = new Set((state.favs || []).map((f) => f.id));
+        add = add.filter((f) => !have.has(f.id)).map((f) => Object.assign({}, f, { id: f.id || uid() }));
+        state.favs = (state.favs || []).concat(add);
+        persist(); renderKids();
+        say(add.length ? `${add.length}こ を おきにいりに くわえました。` : 'くわえる ものは ありませんでした（もう はいって います）。');
+      } catch (err) { say('この ファイルは よみこめませんでした。', true); }
+      e.target.value = '';
+    };
+    fr.readAsText(file);
+  });
+  // つくる：⭐ のこす（おきにいりから ひらいた ときは うわがき）
+  function editingFavHere() { return editingFav && (state.favs || []).find((x) => x.id === editingFav && x.tab === state.tab); }
+  function updateFavBtn() {
+    const f = editingFavHere(), b = $('#favBtn');
+    b.hidden = !FAV_TABS.includes(state.tab);
+    b.textContent = f ? '⭐ うわがき' : '⭐ のこす';
+    b.title = f ? `おきにいり「${f.name}」に うわがき します` : 'いまの ないようを「みせる・つたえる」の おきにいりに のこします';
+  }
+  $('#favBtn').addEventListener('click', () => {
+    const data = JSON.parse(JSON.stringify(state[state.tab])), f = editingFavHere();
+    if (f) {
+      f.data = data;
+      say(`⭐「${f.name}」を うわがき しました。`);
+    } else {
+      const name = pageInfo(state.tab, data)[0];
+      state.favs = (state.favs || []).concat([{ id: uid(), tab: state.tab, name, data }]);
+      say(`⭐「${name}」を おきにいりに いれました。「みせる・つたえる」から すぐ ひらけます（なまえは そこの「せいり」で かえられます）。`);
+    }
+    persist();
+    updateFavBtn();
+  });
+
+  let view = 'home';
+  function setView(v) {
+    view = v;
+    $('#home').hidden = v !== 'home';
+    $('#kids').hidden = v !== 'kids';
+    $('#makeBar').hidden = v !== 'make';
+    $('#makeMain').hidden = v !== 'make';
+    if (v === 'kids') { renderKids(); renderSpeakToggles(); }
+    say('');
+    window.scrollTo(0, 0);
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-go]');
+    if (b) setView(b.dataset.go);
+    const f = e.target.closest('[data-file]');
+    if (f) $(f.dataset.file === 'save' ? '#saveFile' : '#openFile').click();
+    // ファイルの メニューは そとを おすと とじる
+    // おした ばしょの なかに メニューが ない ときだけ とじる（ボタンが かきかわっても とじない ように composedPath を つかう）
+    const path = e.composedPath();
+    document.querySelectorAll('details.filemenu[open]').forEach((m) => { if (!path.includes(m)) m.open = false; });
+  });
+
+  // おりたたみ（くわしい せってい）を ひらいた ままに する
+  const openMore = new Set();
+  editorEl.addEventListener('toggle', (e) => {
+    const el = e.target;
+    if (el.matches && el.matches('details[data-more]')) { if (el.open) openMore.add(el.dataset.more); else openMore.delete(el.dataset.more); }
+  }, true);
+
   // ---------- うえの ボタン ----------
   $('#tabs').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-tab]');
@@ -1001,18 +1468,26 @@
 
   // がめんで みせる
   let wakeLock = null;
-  $('#showBtn').addEventListener('click', () => {
-    const r = PAGES[state.tab](state[state.tab]);
+  $('#showBtn').addEventListener('click', () => openShow(state.tab));
+  let showCtx = null;  // ◀ ▶ で きりかえる ならび
+  function openShow(tab, data, ctx) {
+    showCtx = ctx || null;
+    const r = PAGES[tab](data || state[tab]);
     const box = $('#showIn');
-    box.className = 'showin ' + r.orient;
+    box.className = 'showin ' + r.orient + ' ' + lookClass();
     box.innerHTML = r.html;
     // ✔ は その ひ だけ（ひが かわったら けす）
     const today = isoDate(new Date());
     if (state.doneDate !== today) { state.done = []; state.doneDate = today; persist(); }
     applyDone();
+    renderSpeakToggles();
+    const nav = !!(showCtx && showCtx.list.length > 1);
+    $('#showNav').hidden = !nav;
+    if (nav) $('#showPos').textContent = `${showCtx.i + 1} / ${showCtx.list.length}`;
     $('#show').hidden = false;
-    try { navigator.wakeLock && navigator.wakeLock.request('screen').then((l) => { wakeLock = l; }).catch(() => {}); } catch (e) { /* なくても よい */ }
-  });
+    $('#show').scrollTop = 0;
+    if (!wakeLock) { try { navigator.wakeLock && navigator.wakeLock.request('screen').then((l) => { wakeLock = l; }).catch(() => {}); } catch (e) { /* なくても よい */ } }
+  }
   function applyDone() {
     const done = new Set(state.done || []), box = $('#showIn');
     box.querySelectorAll('[data-id]').forEach((el) => el.classList.toggle('done', done.has(el.dataset.id)));
@@ -1022,29 +1497,136 @@
   }
   $('#showIn').addEventListener('click', (e) => {
     const row = e.target.closest('[data-id]');
-    if (!row || !row.querySelector('.scheck')) return;
-    const done = new Set(state.done || []), id = row.dataset.id;
-    if (done.has(id)) done.delete(id); else done.add(id);
-    state.done = [...done];
-    persist();
-    applyDone();
+    if (row && row.querySelector('.scheck')) {
+      const done = new Set(state.done || []), id = row.dataset.id, label = row.dataset.say || '';
+      const nowDone = !done.has(id);
+      if (nowDone) done.add(id); else done.delete(id);
+      state.done = [...done];
+      persist();
+      applyDone();
+      flash(row);
+      if (nowDone) {
+        // おわったら「〇〇 おしまい。つぎは △△」
+        const rows = [...$('#showIn').querySelectorAll('[data-id]')];
+        const next = rows.slice(rows.indexOf(row) + 1).find((r) => !done.has(r.dataset.id) && r.querySelector('.scheck'));
+        speak(next ? `${label} おしまい。つぎは ${next.dataset.say || ''}` : `${label} おしまい。ぜんぶ できたね`);
+      } else {
+        speak(label);
+      }
+      return;
+    }
+    const el = e.target.closest('[data-say]');
+    if (el) { flash(el); speak(el.dataset.say); }
   });
   $('#showReset').addEventListener('click', () => { state.done = []; persist(); applyDone(); });
   function closeShow() {
+    if (canSpeak) speechSynthesis.cancel();
     $('#show').hidden = true;
     if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
   }
   $('#showClose').addEventListener('click', closeShow);
+  function showStep(dir) {
+    if (!showCtx || showCtx.list.length < 2) return;
+    if (canSpeak) speechSynthesis.cancel();
+    const n = showCtx.list.length;
+    showCtx.i = (showCtx.i + dir + n) % n;
+    const e = showCtx.list[showCtx.i];
+    openShow(e.tab, e.data, showCtx);
+  }
+  $('#showPrev').addEventListener('click', () => showStep(-1));
+  $('#showNext').addEventListener('click', () => showStep(1));
+
+  // ---------- タイマー ----------
+  const T_PRESETS = [[1, '1ぷん'], [3, '3ぷん'], [5, '5ふん'], [10, '10ぷん'], [15, '15ふん'], [30, '30ぷん']];
+  let tTotal = 300, tLeft = 300, tEnd = 0, tRun = false, tTick = null, actx = null, tWake = null;
+  const fmt = (sec) => { const v = Math.ceil(sec); return `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`; };
+  function tRender() {
+    const finished = tLeft <= 0;
+    $('#timer').classList.toggle('done', finished);
+    $('#dial').style.setProperty('--p', tTotal ? Math.max(0, tLeft / tTotal) : 0);
+    $('#ttime').textContent = finished ? 'おしまい！' : fmt(tLeft);
+    $('#tStart').textContent = tRun ? '⏸ とめる' : (tLeft > 0 && tLeft < tTotal ? '▶ つづける' : '▶ スタート');
+    $('#tpresets').innerHTML = T_PRESETS.map(([m, l]) => `<button data-min="${m}" class="${m * 60 === tTotal ? 'active' : ''}">${l}</button>`).join('');
+  }
+  function tStop() {
+    tRun = false;
+    clearInterval(tTick);
+    if (tWake) { tWake.release().catch(() => {}); tWake = null; }
+  }
+  function tSet(min) {
+    tStop();
+    tTotal = tLeft = min * 60;
+    state.ui = Object.assign({}, state.ui, { timerMin: min });
+    persist();
+    tRender();
+  }
+  function ensureAudio() {
+    try {
+      if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();
+    } catch (e) { actx = null; }
+  }
+  function chime() {
+    if (!actx) return;
+    const t0 = actx.currentTime;
+    [[0, 784], [0.35, 784], [0.7, 1047]].forEach(([d, f]) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0 + d);
+      g.gain.exponentialRampToValueAtTime(0.35, t0 + d + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.32);
+      o.connect(g).connect(actx.destination);
+      o.start(t0 + d);
+      o.stop(t0 + d + 0.34);
+    });
+  }
+  function tFinish() {
+    tStop();
+    tLeft = 0;
+    chime();
+    try { navigator.vibrate && navigator.vibrate([300, 150, 300]); } catch (e) { /* なくても よい */ }
+    setTimeout(() => speak('おしまい'), 1100);
+  }
+  $('#tStart').addEventListener('click', () => {
+    if (tRun) { tLeft = Math.max(0, (tEnd - Date.now()) / 1000); tStop(); tRender(); return; }
+    if (tLeft <= 0) tLeft = tTotal;
+    ensureAudio();  // おとは ボタンを おした ときに じゅんび（ブラウザの きまり）
+    tEnd = Date.now() + tLeft * 1000;
+    tRun = true;
+    tTick = setInterval(() => {
+      tLeft = Math.max(0, (tEnd - Date.now()) / 1000);
+      if (tLeft <= 0) tFinish();
+      tRender();
+    }, 250);
+    try { navigator.wakeLock && navigator.wakeLock.request('screen').then((l) => { tWake = l; }).catch(() => {}); } catch (e) { /* なくても よい */ }
+    tRender();
+  });
+  $('#tReset').addEventListener('click', () => { tStop(); tLeft = tTotal; tRender(); });
+  $('#tpresets').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-min]');
+    if (b) tSet(+b.dataset.min);
+  });
+  function openTimer() {
+    const min = (state.ui && state.ui.timerMin) || 5;
+    if (!tRun) { tTotal = min * 60; tLeft = tTotal; }
+    renderSpeakToggles();
+    tRender();
+    $('#timer').hidden = false;
+  }
+  function closeTimer() { tStop(); $('#timer').hidden = true; }
+  $('#timerClose').addEventListener('click', closeTimer);
 
   // スマホ版：ファイルの ほぞんは downloads の きのうで
   let downloads = null;
   if (PHONE_BUILD) {
     $('#print').hidden = true;
     $('#saveFile').hidden = true;
+    $('#homeSave').hidden = true;
     if (window.claude && window.claude.use) {
       window.claude.use('downloads').then((d) => {
         downloads = d;
-        if (d) { $('#saveFile').hidden = false; $('#printFile').hidden = false; }
+        if (d) { $('#saveFile').hidden = false; $('#homeSave').hidden = false; $('#printFile').hidden = false; }
       }).catch(() => {});
     }
   }
@@ -1062,9 +1644,9 @@
     const r = PAGES[state.tab](state[state.tab]);
     const css = [...document.querySelectorAll('style')].map((el) => el.textContent).join('\n');
     const html = `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>いんさつ</title>`
-      + `<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap" rel="stylesheet"><style>${css}</style>`
+      + `<link href="https://fonts.googleapis.com/css2?family=Kosugi+Maru&family=Klee+One:wght@600&display=swap" rel="stylesheet"><style>${css}</style>`
       + `<style>@page { size: A4 ${r.orient}; margin: 0; } body { background: #fff; padding: 16px; } @media print { body { padding: 0; } }</style></head>`
-      + `<body><div class="preview">${r.html}</div><script>window.onload = () => setTimeout(() => print(), 600);<\/script></body></html>`;
+      + `<body><div class="preview ${lookClass()}">${r.html}</div><script>window.onload = () => setTimeout(() => print(), 600);<\/script></body></html>`;
     offerFile(`いんさつ_${state.tab}.html`, html, 'いんさつ よう ファイルを ほぞん しました。ひらくと いんさつ がめんが でます。');
   });
   function downloadText(filename, text, type) {
@@ -1101,7 +1683,7 @@
     downloadText('しかくしえんカード.json', JSON.stringify(state), 'application/json');
     say('ファイルに ほぞん しました。「ファイルを ひらく」で もとに もどせます。');
   });
-  $('#openFile').addEventListener('click', () => $('#openInput').click());
+  $('#openFile').addEventListener('click', () => { document.querySelector('.filemenu').open = false; $('#openInput').click(); });
   $('#openInput').addEventListener('change', (e) => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -1110,7 +1692,7 @@
       try {
         const data = JSON.parse(fr.result);
         if (!data.schedule || !data.voice) throw new Error('bad');
-        commit(); state = withDefaults(data); changed();
+        commit(); state = withDefaults(data); editingFav = null; changed();
         say('ファイルを ひらきました。');
       } catch (err) { say('この ファイルは ひらけませんでした。', true); }
       e.target.value = '';
@@ -1118,7 +1700,8 @@
     fr.readAsText(file);
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { $('#picker').hidden = true; closeShow(); }
+    if (e.key === 'Escape') { $('#picker').hidden = true; closeShow(); closeTimer(); }
+    if (!$('#show').hidden && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) showStep(e.key === 'ArrowLeft' ? -1 : 1);
   });
 
   if (APP_MODE === 'pwa') {
