@@ -267,6 +267,15 @@
   .numrow label { margin: 2px 0; }
   .numrow input { width: 100%; font: inherit; font-size: 15px; padding: 4px 6px; border: 2px solid var(--line); border-radius: 8px; background: var(--ui-surface); color: var(--ui-fg); }
 
+  /* ハードケース よう の おおきさ */
+  .sz-b8 .ccell { margin: 0; }  /* てんせん の わくが ちょうど 64×91mm に なる よう かさねない */
+  .sz-b8 .card .ibox { --s: calc(var(--cw) * 0.74); }
+  .sz-b8 .clabel { font-size: calc(var(--cw) * 0.13 * var(--ts, 1)); }
+  .sz-a4 .ccell { border: none; margin: 0; padding: 6cqw; }
+  .sz-a4 .card { border-width: 1.6cqw; border-radius: 5cqw; gap: 4cqw; }
+  .sz-a4 .card .ibox { --s: 60cqw; }
+  .sz-a4 .clabel { font-size: calc(11cqw * var(--ts, 1)); }
+  .sz-a4 .wcard .ibox { --s: 55cqw; }
   /* もじカード */
   .wcard { gap: 1.2cqw; }
   .wcard .ibox { --s: calc(var(--cw) * 0.48); }
@@ -739,10 +748,25 @@
     return { orient: 'portrait', html };
   }
   function changePages(d) { return cardPages(d, 'change'); }
+  // カードの ならべかた。b8 は B8（64×91mm）の ハードケース、a4 は A4 の ハードケースに ぴったり
+  const MM = 100 / 210;  // 1mm を cqw に（A4 たての はば が 100cqw）
+  function cardLayout(size) {
+    if (size === 'b8') {
+      // 64×91mm を 3×3。まんなかに よせる（ひだり みぎ 9mm、うえ した 12mm）
+      const w = 64 * MM, h = 91 * MM;
+      return { cols: 3, rows: 3, cw: w, ch: h, cls: 'sz-b8',
+        grid: `inset:${(12 * MM).toFixed(3)}cqw ${(9 * MM).toFixed(3)}cqw;grid-template-columns:repeat(3,${w.toFixed(3)}cqw);grid-template-rows:repeat(3,${h.toFixed(3)}cqw)` };
+    }
+    if (size === 'a4') return { cols: 1, rows: 1, cw: 90, ch: 131, cls: 'sz-a4', grid: 'inset:0' };
+    const cols = { l: 2, m: 3, s: 4 }[size] || 3, rows = { l: 3, m: 4, s: 5 }[size] || 4;
+    return { cols, rows, cw: 92 / cols, ch: 133 / rows, cls: '', grid: '' };
+  }
+  const SIZE_OPTS = [['l', 'おおきい（6まい）'], ['m', 'ふつう（12まい）'], ['s', 'ちいさい（20まい）'], ['b8', 'B8 ケース（9まい）'], ['a4', 'A4 ケース（1まい）']];
+
   // もじカード：「みる → あわせる → えらぶ → いう」（See and Learn を さんこう）に つかう ざいりょう
   function wordPages(d) {
-    const cols = { l: 2, m: 3, s: 4 }[d.size] || 3, rows = { l: 3, m: 4, s: 5 }[d.size] || 4, per = cols * rows;
-    const cw = 92 / cols, ch = 133 / rows;
+    const L = cardLayout(d.size), cols = L.cols, rows = L.rows, per = cols * rows;
+    const cw = L.cw, ch = L.ch;
     const fcls = d.font === 'kyokasho' ? 'f-kyo' : '';
     const show = d.show || {};
     const wordHtml = (x, w, hmax) => {
@@ -752,45 +776,46 @@
       if (d.split) {
         // ます（1.2もじぶん）＋ すきま 0.5cqw を 1ぎょうに おさめる
         const boxes = chars.filter((c) => !isSp(c)).length, spaces = chars.length - boxes;
-        fs = Math.min(hmax, (w * 0.74 - 0.5 * Math.max(0, chars.length - 1)) / Math.max(1, boxes * 1.2 + spaces * 0.4));
+        fs = Math.min(hmax, ((w - 9) - 0.5 * Math.max(0, chars.length - 1)) / Math.max(1, boxes * 1.2 + spaces * 0.4));
       } else {
-        fs = Math.min(hmax, (w * 0.84) / Math.max(1, chars.reduce((a, c) => a + (isSp(c) ? 0.4 : 1), 0)));
+        fs = Math.min(hmax, (w - 7.5) / Math.max(1, chars.reduce((a, c) => a + (isSp(c) ? 0.4 : 1), 0)));
       }
       const inner = d.split ? chars.map((c) => (c === ' ' || c === '　' ? '<span class="wsp"></span>' : `<span class="wch">${esc(c)}</span>`)).join('') : esc(x.label);
       return `<div class="wword${d.split ? ' split' : ''}" style="--fs:${fs.toFixed(2)}cqw">${inner}</div>`;
     };
-    const card = (x, withPic) => `<div class="card wcard" data-say="${esc(x.label)}" style="${catStyle(x.cat)};--cw:${cw.toFixed(2)}cqw">
-      ${withPic ? `<div class="ibox">${iconHtml(x.icon)}</div>` : ''}${wordHtml(x, cw, withPic ? ch * 0.2 : ch * 0.36)}</div>`;
+    const card = (x, withPic, w = cw, h = ch) => `<div class="card wcard" data-say="${esc(x.label)}" style="${catStyle(x.cat)};--cw:${w.toFixed(2)}cqw">
+      ${withPic ? `<div class="ibox">${iconHtml(x.icon)}</div>` : ''}${wordHtml(x, w, withPic ? h * 0.2 : h * 0.36)}</div>`;
     let html = '';
     const cardSheets = (withPic) => {
       for (let p = 0; p < Math.ceil(d.items.length / per); p++) {
         const cells = d.items.slice(p * per, (p + 1) * per).map((x) => `<div class="ccell">${card(x, withPic)}</div>`).join('');
-        html += `<div class="page portrait ${fcls}" style="--cols:${cols};--rows:${rows};--cw:${cw.toFixed(2)}cqw"><div class="cgrid">${cells}</div></div>`;
+        html += `<div class="page portrait ${fcls} ${L.cls}" style="--cols:${cols};--rows:${rows};--cw:${cw.toFixed(2)}cqw"><div class="cgrid" style="${L.grid}">${cells}</div></div>`;
       }
     };
     if (show.both) cardSheets(true);
     if (show.word) cardSheets(false);
     if (show.board && d.items.length) {
       // あわせっこ シート：ひだりに え と もじ、みぎに もじだけの カードを おく わく（もじカードと おなじ おおきさ）
-      const pc = Math.max(1, Math.floor(94 / (cw * 2 + 8.5))), br = Math.max(1, Math.floor(127 / (ch + 2)));
+      // A4 ケースの とき シートは「おおきい」の おおきさで つくる
+      const B = d.size === 'a4' ? cardLayout('l') : L, bw = B.cw, bh = B.ch;
+      const pc = Math.max(1, Math.floor(94 / (bw * 2 + 8.5))), br = Math.max(1, Math.floor(127 / (bh + 2)));
       for (let p = 0; p < Math.ceil(d.items.length / (pc * br)); p++) {
-        const cells = d.items.slice(p * pc * br, (p + 1) * pc * br).map((x) => `${card(x, true)}<div class="barrow">▶</div>
-          <div class="bslot">${d.hint ? wordHtml(x, cw, ch * 0.36) : ''}</div>`).join('');
+        const cells = d.items.slice(p * pc * br, (p + 1) * pc * br).map((x) => `${card(x, true, bw, bh)}<div class="barrow">▶</div>
+          <div class="bslot">${d.hint ? wordHtml(x, bw, bh * 0.36) : ''}</div>`).join('');
         html += `<div class="page portrait ${fcls}"><div class="bpin"><div class="ptitle">おなじ ことばを あわせよう</div>
-          <div class="bgrid" style="--pc:${pc};--cw:${(cw - 3.2).toFixed(2)}cqw;--ch:${(ch - 3.2).toFixed(2)}cqw">${cells}</div></div></div>`;
+          <div class="bgrid" style="--pc:${pc};--cw:${(bw - 3.2).toFixed(2)}cqw;--ch:${(bh - 3.2).toFixed(2)}cqw">${cells}</div></div></div>`;
       }
     }
     if (!html) html = '<div class="page portrait"><div class="emptypage">いんさつ する ものを えらんで ください</div></div>';
     return { orient: 'portrait', html };
   }
   function cardPages(d, variant = '') {
-    const cols = { l: 2, m: 3, s: 4 }[d.size] || 3, rows = { l: 3, m: 4, s: 5 }[d.size] || 4, per = cols * rows;
-    const cw = 92 / cols;
+    const L = cardLayout(d.size), cols = L.cols, rows = L.rows, per = cols * rows, cw = L.cw;
     let html = '';
     for (let p = 0; p < Math.max(1, Math.ceil(d.items.length / per)); p++) {
       const cells = d.items.slice(p * per, (p + 1) * per).map((x) => `<div class="ccell"><div class="card ${variant}" data-say="${esc(x.label)}" style="${catStyle(x.cat)}">
         <div class="ibox">${iconHtml(x.icon)}</div><div class="clabel">${esc(x.label)}</div></div></div>`).join('');
-      html += `<div class="page portrait" style="--cols:${cols};--rows:${rows};--cw:${cw.toFixed(2)}cqw"><div class="cgrid">${cells}</div></div>`;
+      html += `<div class="page portrait ${L.cls}" style="--cols:${cols};--rows:${rows};--cw:${cw.toFixed(2)}cqw"><div class="cgrid" style="${L.grid}">${cells}</div></div>`;
     }
     return { orient: 'portrait', html };
   }
@@ -845,6 +870,8 @@
     cards: `<b>つかいかたの ヒント</b><ul>
       <li>え の したには <b>ひらがなを そえます</b>。ことばかけが そろい、もじに ふれる きっかけにも なります。</li>
       <li>てんせんで きって、ラミネートや マジックテープで スケジュールボードに はれます。</li>
+      <li><b>B8 ケース</b>：てんせんで きると B8（64×91mm）。トレーディングカード よう の ハードケースに ぴったり はいります。</li>
+      <li><b>A4 ケース</b>：1まいに 1つ おおきく いんさつ。A4 の ハードケースに そのまま いれられます。</li>
       <li>「てつだって」「まってね」など、<b>じぶんから つたえる</b> ための カードも おすすめです。</li>
       <li>しゃしんを つかうと、じっさいの ものと むすびつけやすく なります。</li></ul>`,
     steps: `<b>つかいかたの ヒント</b><ul>
@@ -941,7 +968,7 @@
         <button data-act="add" data-list="feel.items">＋ ふやす</button>`;
     } else if (t === 'change') {
       h += `<h3>🔄 かわったよ カード</h3>
-        <h4>おおきさ</h4>${seg('change', 'size', d.size, [['l', 'おおきい（6まい）'], ['m', 'ふつう（12まい）'], ['s', 'ちいさい（20まい）']])}
+        <h4>おおきさ</h4>${seg('change', 'size', d.size, SIZE_OPTS)}
         <h4>カード（${d.items.length}まい）</h4>
         ${d.items.map((x, i) => itemRow(`change.items.${i}`, x, { list: 'change.items', i })).join('')}
         <button data-act="add" data-list="change.items">＋ カードを ふやす</button>`;
@@ -981,7 +1008,7 @@
         <p style="font-size:13px;color:var(--ui-muted);margin:0 0 6px">え と もじを いっしょに みせて、もじを てがかりに ことばを そだてる ための カードです。</p>
         <h4>いんさつ する もの</h4>
         ${chk('both', 'え と もじの カード（みる）')}${chk('word', 'もじだけの カード（あわせる・えらぶ・いう）')}${chk('board', 'おなじ ことばを あわせよう シート')}
-        <h4>おおきさ</h4>${seg('words', 'size', d.size, [['l', 'おおきい（6まい）'], ['m', 'ふつう（12まい）'], ['s', 'ちいさい（20まい）']])}
+        <h4>おおきさ</h4>${seg('words', 'size', d.size, SIZE_OPTS)}
         <h4>もじの かたち</h4>${seg('words', 'font', d.font, [['maru', 'まるもじ'], ['kyokasho', 'きょうかしょ たい']])}
         <label><input type="checkbox" data-path="words" data-field="split" ${d.split ? 'checked' : ''}> 1もじずつ ますに わける</label>
         ${sh.board ? `<label><input type="checkbox" data-path="words" data-field="hint" ${d.hint ? 'checked' : ''}> あわせっこ シートの わくに うすく もじを いれる</label>` : ''}
@@ -996,7 +1023,7 @@
         <h4>ごほうび</h4>${itemRow('reward.prize', d.prize, { cat: true })}`;
     } else {
       h += `<h3>🃏 えカード（きりとり よう）</h3>
-        <h4>おおきさ</h4>${seg('cards', 'size', d.size, [['l', 'おおきい（6まい）'], ['m', 'ふつう（12まい）'], ['s', 'ちいさい（20まい）']])}
+        <h4>おおきさ</h4>${seg('cards', 'size', d.size, SIZE_OPTS)}
         <h4>カード（${d.items.length}まい）</h4>
         ${d.items.map((x, i) => itemRow(`cards.items.${i}`, x, { cat: true, list: 'cards.items', i })).join('')}
         <button data-act="add" data-list="cards.items">＋ カードを ふやす</button>`;
