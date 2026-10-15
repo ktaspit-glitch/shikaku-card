@@ -320,6 +320,8 @@
   .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
   .mgrid button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; font-size: 13px; }
   .mgrid .ic-emo { font-size: 34px; display: block; height: 42px; line-height: 42px; }
+  .mgrid .ic-svg { width: 46px; height: 46px; }
+  .ic-svg { display: block; width: 92%; height: 92%; }
   .photobusy { margin: 8px 0 0; color: var(--ui-head); font-size: 15px; }
   .photo { display: block; margin-top: 12px; padding: 10px; border: 2px dashed var(--line); border-radius: 12px; font-size: 15px; }
 
@@ -457,10 +459,18 @@
     { id: 'F2A4-6', products: '72202', cols: 1, rows: 2, w: 210, h: 148.5, left: 0, top: 0, px: 210, py: 148.5 },
     { id: 'F1A4-1', products: '72201', cols: 1, rows: 1, w: 210, h: 297, left: 0, top: 0, px: 210, py: 297 },
   ];
+  // は の ばしょ（しあげみがき の じゅんばん）
+  const TEETH = [
+    ['o-l-back', 'したの おくば（かむ ところ）'], ['o-l-in', 'したの まえば（うら）'], ['f-lf', 'したの まえば（おもて）'],
+    ['o-u-back', 'うえの おくば（かむ ところ）'], ['o-u-in', 'うえの まえば（うら）'], ['f-uf', 'うえの まえば（おもて）'],
+    ['f-side', 'ほっぺた がわ'], ['f-all', 'ぜんぶ ぴかぴか'],
+  ];
   // てじゅんの ひながた
   const STEP_PRESETS = {
     wash: ['てを あらう', [['🚰','みずを だす'],['🧼','せっけん'],['👐','ごしごし'],['💧','みずで ながす'],['🤲','タオルで ふく'],['🙌','ぴかぴか！']]],
     teeth: ['はみがき', [['🥛','コップに みず'],['🦷','まえば ごしごし'],['🦷','おくば ごしごし'],['💧','ぶくぶく ぺー'],['🙌','ぴかぴか！']]],
+    // しあげみがき の じゅんばん（は の ばしょ の え）
+    brushZones: ['はみがき（ばしょ）', [...TEETH.slice(0, 7).map(([v, l]) => [{ t: 'teeth', v }, l]), ['💧', 'ぶくぶく ぺー']]],
     dress: ['おきがえ', [['👚','パジャマを ぬぐ'],['👕','シャツを きる'],['👖','ズボンを はく'],['🧦','くつしたを はく'],['🙌','できた！']]],
     toilet: ['トイレ', [['🚽','トイレに いく'],['👖','ズボンを おろす'],['🚽','すわる'],['🧻','ふく'],['💧','ながす'],['🧼','てを あらう']]],
   };
@@ -565,9 +575,55 @@
   function changed() { renderEditor(); renderPreview(); persist(); }
 
   // ---------- え ----------
+  // は の ばしょ の え：みがく ところ だけ みずいろに ひからせる。
+  // 「みぎ・ひだり」は つかわず、うえ／した・まえば／おくば・おもて／うら／かむ ところ で しめす
+  function teethSvg(zone) {
+    const look = (on) => (on ? 'fill="#b3e5fc" stroke="#0277bd" stroke-width="2.4"' : 'fill="#fff" stroke="#9eaab3" stroke-width="1.2"');
+    if (String(zone).startsWith('f-')) {
+      // くちを しょうめん から みた え（うえの は と したの は）
+      const row = [[14, 30, 10, 12, 's'], [24.5, 26, 10, 14, 's'], [35, 22, 7.5, 16, 'f'], [42.7, 21, 7.3, 17, 'f'],
+        [50, 21, 7.3, 17, 'f'], [57.5, 22, 7.5, 16, 'f'], [65.5, 26, 10, 14, 's'], [76, 30, 10, 12, 's']];
+      const on = (r, k) => zone === 'f-all' || (zone === 'f-side' && k === 's') || (zone === 'f-uf' && r === 'u' && k === 'f') || (zone === 'f-lf' && r === 'l' && k === 'f');
+      let t = '';
+      row.forEach(([x, y, w, h, k]) => {
+        t += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2.5" ${look(on('u', k))}/>`;
+        t += `<rect x="${x}" y="${100 - y - h}" width="${w}" height="${h}" rx="2.5" ${look(on('l', k))}/>`;
+      });
+      return `<svg class="ic-svg" viewBox="0 0 100 100" aria-hidden="true"><ellipse cx="50" cy="50" rx="44" ry="38" fill="#8e2747"/>`
+        + `<ellipse cx="50" cy="70" rx="22" ry="9" fill="#e5738f"/>${t}`
+        + `<ellipse cx="50" cy="50" rx="44" ry="38" fill="none" stroke="#f48fb1" stroke-width="8"/></svg>`;
+    }
+    // は を まうえ（した）から みた え：かむ ところ・うら がわ
+    const upper = String(zone).startsWith('o-u'), back = String(zone).endsWith('back'), inner = String(zone).endsWith('in');
+    const pt = (deg, rx, ry) => { const a = (deg * Math.PI) / 180; return [50 + rx * Math.cos(a), 38 + ry * Math.sin(a)]; };
+    let gum = '';
+    for (let d = 6; d <= 174; d += 6) gum += `${d === 6 ? 'M' : 'L'}${pt(d, 33, 44).map((v) => v.toFixed(1)).join(' ')}`;
+    let t = '';
+    const n = 10;
+    for (let i = 0; i < n; i++) {
+      const [x, y] = pt(12 + (i * 156) / (n - 1), 33, 44);
+      const molar = i < 2 || i >= n - 2, canine = i === 2 || i === n - 3;
+      const r = molar ? 7.5 : canine ? 5.8 : 4.8, on = back && molar;
+      t += `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${2 * r}" height="${2 * r}" rx="${molar ? 3 : r}" ${look(on)}/>`;
+      if (molar) t += `<path d="M${(x - r * 0.5).toFixed(1)} ${y.toFixed(1)}h${r}M${x.toFixed(1)} ${(y - r * 0.5).toFixed(1)}v${r}" stroke="${on ? '#0277bd' : '#c5ccd1'}" stroke-width="1"/>`;
+    }
+    let band = '';
+    if (inner) {
+      let b = '';
+      for (let d = 56; d <= 124; d += 4) b += `${d === 56 ? 'M' : 'L'}${pt(d, 22, 32).map((v) => v.toFixed(1)).join(' ')}`;
+      band = `<path d="${b}" fill="none" stroke="#4fc3f7" stroke-width="6" stroke-linecap="round"/><path d="${b}" fill="none" stroke="#0277bd" stroke-width="1.4" stroke-dasharray="3 3"/>`;
+    }
+    const mid = upper
+      ? '<ellipse cx="50" cy="52" rx="15" ry="18" fill="#f8bbd0"/><path d="M42 44h16M41 51h18M43 58h14" stroke="#ec9ab4" stroke-width="1.4"/>'
+      : '<ellipse cx="50" cy="54" rx="14" ry="16" fill="#e5738f"/>';
+    return `<svg class="ic-svg" viewBox="0 0 100 100" aria-hidden="true"><path d="${gum}" fill="none" stroke="#f8bbd0" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>`
+      + `${mid}${t}${band}<rect x="3" y="3" width="30" height="17" rx="8" fill="#fff" stroke="#9eaab3"/>`
+      + `<text x="18" y="15.5" font-size="11" text-anchor="middle" fill="#37474f" font-weight="bold">${upper ? 'うえ' : 'した'}</text></svg>`;
+  }
   function iconHtml(icon) {
     if (!icon) return '';
     if (icon.t === 'img') return `<img class="ic-img" src="${esc(icon.v)}" alt="">`;
+    if (icon.t === 'teeth') return teethSvg(icon.v);
     return `<span class="ic-emo">${esc(icon.v)}</span>`;
   }
   const catOf = (k) => CATS[k] || CATS.other;
@@ -1055,7 +1111,7 @@
       const [name, steps] = STEP_PRESETS[b.dataset.v];
       commit();
       state.steps.title = name;
-      state.steps.items = steps.map(([v, l]) => it(v, l, 'life'));
+      state.steps.items = steps.map(([v, l]) => (typeof v === 'string' ? it(v, l, 'life') : Object.assign(it('🦷', l, 'life'), { icon: v })));
       changed();
       say(`「${name}」の ひながたに いれかえました。もとに もどす ときは「↩ もどす」。`);
       return;
@@ -1107,8 +1163,11 @@
     $('#picker').hidden = false;
   }
   function renderPicker() {
-    $('#mtabs').innerHTML = Object.keys(LIB).map((k) => `<button data-cat="${k}" class="${k === pickCat ? 'active' : ''}" style="border-left:6px solid ${CATS[k].color}">${CATS[k].name}</button>`).join('');
-    $('#mgrid').innerHTML = LIB[pickCat].map(([v, l]) => `<button data-v="${v}" data-l="${esc(l)}"><span class="ic-emo">${v}</span>${esc(l)}</button>`).join('');
+    $('#mtabs').innerHTML = Object.keys(LIB).map((k) => `<button data-cat="${k}" class="${k === pickCat ? 'active' : ''}" style="border-left:6px solid ${CATS[k].color}">${CATS[k].name}</button>`).join('')
+      + `<button data-cat="teeth" class="${pickCat === 'teeth' ? 'active' : ''}" style="border-left:6px solid #0277bd">🦷 はの ばしょ</button>`;
+    $('#mgrid').innerHTML = pickCat === 'teeth'
+      ? TEETH.map(([v, l]) => `<button data-t="teeth" data-v="${v}" data-l="${esc(l)}">${teethSvg(v)}${esc(l)}</button>`).join('')
+      : LIB[pickCat].map(([v, l]) => `<button data-v="${v}" data-l="${esc(l)}"><span class="ic-emo">${v}</span>${esc(l)}</button>`).join('');
   }
   function applyIcon(icon, label, cat) {
     const x = get(pickPath);
@@ -1126,7 +1185,10 @@
     const tab = e.target.closest('#mtabs button');
     if (tab) { pickCat = tab.dataset.cat; renderPicker(); return; }
     const em = e.target.closest('#mgrid button');
-    if (em) applyIcon({ t: 'emoji', v: em.dataset.v }, em.dataset.l, pickCat);
+    if (em) {
+      if (em.dataset.t === 'teeth') applyIcon({ t: 'teeth', v: em.dataset.v }, em.dataset.l, 'life');
+      else applyIcon({ t: 'emoji', v: em.dataset.v }, em.dataset.l, pickCat);
+    }
   });
   // しゃしん：おおきな しゃしんでも かるく よみこむ（base64 に しないで そのまま ひらく）。よみこみ ちゅうは もう いちど おせない。
   $('#photoInput').addEventListener('change', async (e) => {
