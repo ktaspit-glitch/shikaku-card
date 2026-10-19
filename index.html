@@ -98,6 +98,26 @@
   .bigbtn small { font-size: 14px; color: var(--ui-muted); }
   .homefile { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
   .homefile button { font-size: 14px; }
+  /* ホームがめんに ついか の あんない（スマホ版 だけ。じゃま に ならない ように ちいさく） */
+  .a2hs { max-width: 520px; margin: 22px auto 0; padding: 10px 12px; border: 2px dashed var(--line); border-radius: 14px; background: var(--ui-soft); font-size: 14px; text-align: left; }
+  .a2hs p { display: flex; gap: 8px; margin: 0 0 8px; }
+  .a2hs small { display: block; color: var(--ui-muted); font-size: 12px; margin-top: 2px; }
+  .a2hsicon { font-family: var(--emoji); font-size: 22px; line-height: 1; }
+  .a2hsbtns { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .a2hsbtns button { font-size: 13px; padding: 5px 10px; }
+  .a2hslink { margin: 18px 0 0; }
+  .a2hslink button { font-size: 13px; background: none; border: none; color: var(--ui-muted); text-decoration: underline; padding: 4px; }
+  .a2box { width: min(520px, 100%); font-size: 15px; }
+  .a2box h3 { margin: 14px 0 6px; font-size: 16px; color: var(--ui-head); }
+  .a2lead { margin: 0 0 8px; color: var(--ui-muted); font-size: 14px; }
+  .a2steps { margin: 0; padding: 0; list-style: none; counter-reset: a2; display: grid; gap: 8px; }
+  .a2steps li { counter-increment: a2; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; background: var(--ui-soft); }
+  .a2steps li::before { content: counter(a2); flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: bold; text-align: center; line-height: 24px; font-size: 14px; }
+  .a2steps small { display: block; color: var(--ui-muted); font-size: 12px; margin-top: 2px; }
+  .a2pic { flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--ui-surface); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--ui-fg); }
+  .a2i { width: 26px; height: 26px; }
+  .a2word { width: auto; padding: 0 8px; color: #0a84ff; font-weight: bold; font-size: 15px; }
+  .a2warn { margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; background: #fff3cd; color: #5d4300; font-size: 13px; }
   .kids { max-width: 960px; margin: 0 auto; padding: 12px 16px 28px; }
   .kidsbar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .kidsbar b { font-size: 20px; color: var(--ui-head); }
@@ -314,7 +334,8 @@
   .modal { position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 20; display: flex; align-items: center; justify-content: center; padding: 12px; }
   .modal[hidden] { display: none; }
   .mbox { background: var(--ui-surface); border-radius: 18px; width: min(680px, 100%); max-height: 90vh; overflow: auto; padding: 14px; }
-  .mhead { display: flex; justify-content: space-between; align-items: center; font-size: 18px; color: var(--ui-head); margin-bottom: 8px; }
+  .mhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 18px; color: var(--ui-head); margin-bottom: 8px; }
+  .mhead button { flex: none; white-space: nowrap; }
   .mtabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
   .mtabs button { font-size: 14px; padding: 6px 10px; }
   .mgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; }
@@ -344,7 +365,12 @@
     <button class="bigbtn" data-go="kids"><span class="bigicon">👀</span><b>みせる・つたえる</b><small>こどもと いっしょに、がめんで みる</small></button>
     <button class="bigbtn" data-go="make"><span class="bigicon">✏️</span><b>つくる</b><small>カードを つくる・なおす・いんさつ する</small></button>
   </div>
-  <div class="homefile"><button data-file="save" id="homeSave">💾 ファイルに ほぞん</button><button data-file="open">📂 ファイルを ひらく</button></div>
+  <div class="homefile"><button data-file="open">📂 ファイルを ひらく</button><button data-file="all" id="homeSave">💾 ぜんぶ まとめて ほぞん</button></div>
+  <div class="a2hs" id="a2hs" hidden>
+    <p><span class="a2hsicon">📲</span><span>ホームがめんに ついか すると、アプリの ように すぐ ひらけます。<small>ついか しなくても、このまま つかえます。</small><small id="a2hsIosNote" hidden>まいにち つかう なら、さきに ついか してから つくりはじめるのが おすすめです。</small></span></p>
+    <div class="a2hsbtns"><button id="a2hsGo" class="primary">📲 ホームがめんに ついか</button><button id="a2hsHow">やりかたを みる</button><button id="a2hsClose">とじる</button></div>
+  </div>
+  <p class="a2hslink" id="a2hsLink" hidden><button id="a2hsHelp">📲 ホームがめんに ついか する には</button></p>
 </section>
 
 <section class="kids" id="kids" hidden>
@@ -353,9 +379,8 @@
   <div class="kidshead"><h2>⭐ おきにいり</h2><button id="favManage">⚙ せいり</button></div>
   <div class="kidsgrid" id="favGrid"></div>
   <div class="favtools" id="favTools" hidden>
-    <button id="favSaveAll">💾 おきにいりを ぜんぶ ファイルに ほぞん</button>
-    <button id="favImport">📂 ファイルから おきにいりを くわえる</button>
-    <input type="file" id="favInput" accept=".json,.txt,application/json,text/plain" hidden>
+    <button data-file="open">📂 ファイルを ひらく</button>
+    <button data-file="all" class="saveAllBtn">💾 ぜんぶ まとめて ほぞん</button>
   </div>
   <h2 class="kidsh2">いま つくって いる もの</h2>
   <div class="kidsgrid" id="kidsGrid"></div>
@@ -372,8 +397,9 @@
     <button id="printFile" class="primary" hidden>🖨 いんさつ よう ファイル</button>
     <details class="filemenu"><summary>📁 ファイル</summary>
       <div class="filepop">
-        <button id="saveFile">💾 ファイルに ほぞん</button>
+        <button id="saveFile">💾 これを ファイルに ほぞん</button>
         <button id="openFile">📂 ファイルを ひらく</button>
+        <button id="saveAll" class="saveAllBtn">💾 ぜんぶ まとめて ほぞん</button>
       </div>
     </details>
     <details class="filemenu lookmenu"><summary>👓 みやすさ</summary><div class="filepop" id="lookPop"></div></details>
@@ -398,6 +424,31 @@
     <div class="ttime" id="ttime">5:00</div>
     <div class="tpresets" id="tpresets"></div>
     <div class="tctrl"><button id="tStart" class="primary">▶ スタート</button><button id="tReset">↺ もういちど</button></div>
+  </div>
+</div>
+
+<div class="modal" id="a2hsBox" hidden>
+  <div class="mbox a2box">
+    <div class="mhead"><span>📲 ホームがめんに ついか</span><button id="a2hsBoxClose">とじる</button></div>
+    <p class="a2lead">ついか すると、ホームがめんの「しかくカード」から すぐ ひらけます。インターネットが なくても つかえます。ついか しなくても、このまま つかえます。</p>
+    <button id="a2hsBoxGo" class="primary" hidden>📲 いま ついか する</button>
+    <section id="a2Ios">
+      <h3>iPhone・iPad</h3>
+      <ol class="a2steps">
+        <li><span class="a2pic"><svg class="a2i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11M7.5 7.5 12 3l4.5 4.5" fill="none" stroke="#0a84ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 10.5H6v10h12v-10h-2.5" fill="none" stroke="#0a84ff" stroke-width="2" stroke-linejoin="round"/></svg></span><span>がめんの <b>きょうゆう ボタン</b> を おします。<small>iPhone の Safari は した、iPad は うえの ほうに あります。みつからない ときは「…」を おすと でて きます。</small></span></li>
+        <li><span class="a2pic"><svg class="a2i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8.5v7M8.5 12h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span>メニューを したに うごかして、<b>「ホーム画面に追加」</b> を おします。</span></li>
+        <li><span class="a2pic a2word">追加</span><span>みぎうえの <b>「追加」</b> を おします。ホームがめんに「しかくカード」が できます。</span></li>
+      </ol>
+      <p class="a2warn">⚠ iPhone・iPad では、<b>Safari で つくった もの</b> と <b>ホームがめんの アプリで つくった もの</b> は、べつべつに ほぞん されます。まいにち つかう なら、さきに ホームがめんに ついか してから つくりはじめて ください。<br>Safari で つくった ものは「💾 ぜんぶ まとめて ほぞん」→ ホームがめんの アプリで「📂 ファイルを ひらく」で うつせます。</p>
+    </section>
+    <section id="a2Android">
+      <h3>Android（Chrome など）</h3>
+      <ol class="a2steps">
+        <li><span class="a2pic"><svg class="a2i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg></span><span>みぎうえの <b>メニュー（︙）</b> を おします。</span></li>
+        <li><span class="a2pic"><svg class="a2i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8.5v7M8.5 12h7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><span><b>「ホーム画面に追加」</b> または <b>「アプリをインストール」</b> を おします。</span></li>
+        <li><span class="a2pic a2word">追加</span><span><b>「追加」</b> または <b>「インストール」</b> を おします。ホームがめんに「しかくカード」が できます。</span></li>
+      </ol>
+    </section>
   </div>
 </div>
 
@@ -568,7 +619,7 @@
   function persist() {
     if (!storageOK) return;
     try { localStorage.setItem(KEY, JSON.stringify(state)); }
-    catch (e) { say('ブラウザに ほぞん できませんでした（しゃしんが おおい かも）。「ファイルに ほぞん」を つかってください。', true); }
+    catch (e) { say('ブラウザに ほぞん できませんでした（しゃしんが おおい かも）。「ぜんぶ まとめて ほぞん」を つかってください。', true); }
   }
   function commit() { undoStack.push(JSON.stringify(state)); if (undoStack.length > 80) undoStack.shift(); }
   function say(msg, warn) { statusEl.textContent = msg || ''; statusEl.classList.toggle('warn', !!warn); }
@@ -1436,20 +1487,12 @@
     const sv = e.target.closest('[data-fav-save]');
     if (sv) {
       const f = favs[+sv.dataset.favSave];
-      saveFavs([f], f.name);
+      saveItems([f], f.name, `「${f.name}」を ファイルに ほぞん しました。`);
       return;
     }
     const ed = e.target.closest('[data-fav-edit]');
     if (ed) {
-      const f = favs[+ed.dataset.favEdit];
-      commit();
-      state[f.tab] = JSON.parse(JSON.stringify(f.data));
-      state.tab = f.tab;
-      editingFav = f.id;
-      favManage = false;
-      setView('make');
-      changed();
-      say(`「${f.name}」を ひらきました。なおしたら「⭐ うわがき」で おきにいりに もどせます。`);
+      editFav(favs[+ed.dataset.favEdit]);
       return;
     }
     const del = e.target.closest('[data-fav-del]');
@@ -1470,41 +1513,84 @@
     state.favs[+el.dataset.favName].name = el.value;
     persist();
   });
-  // ファイルから くわえる：ファイルの おきにいり（なければ その ファイルの ページ）を くわえる
-  $('#favImport').addEventListener('click', () => $('#favInput').click());
-  // おきにいり だけの ファイル：{ app, kind: 'favs', favs }。「⭐＋なまえ」が ファイルめい に なる（ぜんぶ の ファイル と みわける）
-  function saveFavs(list, name) {
-    if (!list.length) { say('おきにいりが まだ ありません。', true); return; }
-    saveJson('⭐' + fileBase(name, 'おきにいり'), { app: 'shikaku-card', kind: 'favs', favs: list },
-      `「${name}」を ファイルに ほぞん しました。「ファイルを ひらく」で おきにいりに もどせます。`);
+  // ---------- ファイル ----------
+  // きまり：ファイル 1つ に はいって いる のは「⭐ の もの」（1つ か まとめて）。
+  // ひらくと おきにいりに「たす」だけ で、なにも けさない。けすのは 🗑 を おした とき だけ。
+  // ファイルの かたち：{ app: 'shikaku-card', kind: 'favs', favs: [{ id, tab, name, data }] }
+  const plain = (v) => JSON.stringify(v, (k, x) => (k === 'id' ? undefined : x));
+  const sameAsFav = (tab, data) => (state.favs || []).find((f) => f.tab === tab && plain(f.data) === plain(data));
+  const isDefault = (tab, data) => plain(data) === plain(defaults()[tab]);
+  const pageTitle = (tab, d) => (tab === 'label' ? 'シール ようし' : pageInfo(tab, d)[0]);
+  function saveItems(list, name, okMsg) {
+    saveJson(fileBase(name), { app: 'shikaku-card', kind: 'favs', favs: JSON.parse(JSON.stringify(list)) }, okMsg);
   }
-  $('#favSaveAll').addEventListener('click', () => saveFavs(state.favs || [], 'おきにいり'));
-  function addFavsFrom(raw) {
-    const data = withDefaults(raw);
-    let add = (data.favs || []).filter((f) => f && FAV_TABS.includes(f.tab) && f.data);
-    if (!add.length) {
-      // おきにいりが ない ふるい ファイル：さいしょの れいの まま の ページは くわえない
-      const plain = (v) => JSON.stringify(v, (k, x) => (k === 'id' ? undefined : x));
-      const def = defaults();
-      add = KID_TABS.filter((t) => plain(data[t]) !== plain(def[t])).map((t) => ({ id: uid(), tab: t, name: pageInfo(t, data[t])[0], data: data[t] }));
+  // つくりかけ を まもる：⭐ に まだ ない つくりかけ は「（つくりかけ）」として ⭐ に いれて おく
+  function keepDraft(tab) {
+    const d = state[tab];
+    if (!FAV_TABS.includes(tab) || isDefault(tab, d) || sameAsFav(tab, d)) return null;
+    const f = { id: uid(), tab, name: `（つくりかけ）${pageTitle(tab, d)}`, data: JSON.parse(JSON.stringify(d)) };
+    state.favs = (state.favs || []).concat([f]);
+    return f;
+  }
+  // ⭐ の ものを「つくる」で ひらく
+  function editFav(f) {
+    commit();
+    const kept = keepDraft(f.tab);
+    state[f.tab] = JSON.parse(JSON.stringify(f.data));
+    state.tab = f.tab;
+    editingFav = f.id;
+    favManage = false;
+    setView('make');
+    changed();
+    say(`「${f.name}」を ひらきました。なおしたら「⭐ うわがき」で のこせます。`
+      + (kept ? `（それまでの つくりかけは「${kept.name}」として ⭐ に いれました）` : ''));
+  }
+  // ファイルの なかみ を ⭐ に たす
+  function openItems(raw) {
+    let items;
+    if (raw && raw.kind === 'favs' && Array.isArray(raw.favs)) items = raw.favs;
+    else if (raw && raw.schedule && raw.voice) {
+      // まえの かたち（ぜんぶ の ページ が はいった ファイル）：⭐ と、れい の まま で ない ページ を たす
+      const data = withDefaults(raw), fv = (data.favs || []).filter((f) => f && f.data);
+      const pages = FAV_TABS.filter((t) => data[t] && !isDefault(t, data[t]) && !fv.some((f) => f.tab === t && plain(f.data) === plain(data[t])))
+        .map((t) => ({ id: uid(), tab: t, name: pageTitle(t, data[t]), data: data[t] }));
+      items = fv.concat(pages);
+    } else throw new Error('bad');
+    commit();
+    let added = 0, label = false, target = null;
+    const ids = new Set((state.favs || []).map((f) => f.id));
+    for (const x of items) {
+      if (!x || !x.data) continue;
+      if (x.tab === 'label') {  // シール ようし は ⭐ に ならない ので「つくる」の シール ようし に いれる
+        state.label = withDefaults({ label: x.data }).label;
+        label = true;
+        continue;
+      }
+      if (!FAV_TABS.includes(x.tab)) continue;
+      const data = withDefaults({ [x.tab]: x.data })[x.tab];
+      const have = sameAsFav(x.tab, data);
+      if (have) { target = have; continue; }
+      const f = { id: x.id && !ids.has(x.id) ? x.id : uid(), tab: x.tab, name: x.name || pageTitle(x.tab, data), data };
+      ids.add(f.id);
+      state.favs = (state.favs || []).concat([f]);
+      target = f;
+      added++;
     }
-    const have = new Set((state.favs || []).map((f) => f.id));
-    add = add.filter((f) => !have.has(f.id)).map((f) => Object.assign({}, f, { id: f.id || uid() }));
-    state.favs = (state.favs || []).concat(add);
     persist();
-    if (view === 'kids') renderKids();
-    say(add.length ? `${add.length}こ を「みせる・つたえる」の おきにいりに くわえました。` : 'くわえる ものは ありませんでした（もう はいって います）。');
+    if (label && items.length === 1) {
+      state.tab = 'label'; editingFav = null; setView('make'); changed();
+      say('シール ようし を ひらきました。');
+      return;
+    }
+    // 1つ だけ の ファイルを「つくる」で ひらいた ときは、そのまま なおせる ように する
+    if (view === 'make' && items.length === 1 && target) {
+      editFav(target);
+      if (!added) say(`「${target.name}」は もう ⭐ に あります。それを ひらきました。`);
+      return;
+    }
+    setView('kids');
+    say(added ? `${added}こ を ⭐ おきにいり に たしました（いままで の ものは そのまま です）。` : 'たす ものは ありませんでした（もう ⭐ に はいって います）。');
   }
-  $('#favInput').addEventListener('change', (e) => {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const fr = new FileReader();
-    fr.onload = () => {
-      try { addFavsFrom(JSON.parse(fr.result)); } catch (err) { say('この ファイルは よみこめませんでした。', true); }
-      e.target.value = '';
-    };
-    fr.readAsText(file);
-  });
   // つくる：⭐ のこす（おきにいりから ひらいた ときは うわがき）
   function editingFavHere() { return editingFav && (state.favs || []).find((x) => x.id === editingFav && x.tab === state.tab); }
   function updateFavBtn() {
@@ -1542,7 +1628,7 @@
     const b = e.target.closest('[data-go]');
     if (b) setView(b.dataset.go);
     const f = e.target.closest('[data-file]');
-    if (f) $(f.dataset.file === 'save' ? '#saveFile' : '#openFile').click();
+    if (f) $(f.dataset.file === 'all' ? '#saveAll' : '#openFile').click();
     // ファイルの メニューは そとを おすと とじる
     // おした ばしょの なかに メニューが ない ときだけ とじる（ボタンが かきかわっても とじない ように composedPath を つかう）
     const path = e.composedPath();
@@ -1729,10 +1815,11 @@
     $('#print').hidden = true;
     $('#saveFile').hidden = true;
     $('#homeSave').hidden = true;
+    document.querySelectorAll('.saveAllBtn').forEach((b) => { b.hidden = true; });
     if (window.claude && window.claude.use) {
       window.claude.use('downloads').then((d) => {
         downloads = d;
-        if (d) { $('#saveFile').hidden = false; $('#homeSave').hidden = false; $('#printFile').hidden = false; }
+        if (d) { $('#saveFile').hidden = false; $('#homeSave').hidden = false; $('#printFile').hidden = false; document.querySelectorAll('.saveAllBtn').forEach((b) => { b.hidden = false; }); }
       }).catch(() => {});
     }
   }
@@ -1795,11 +1882,22 @@
     downloadText(base + '.json', text, 'application/json');
     say(okMsg);
   }
+  // これを ほぞん：いま つくって いる 1つ だけ。タイトル が ファイルめい
   $('#saveFile').addEventListener('click', () => {
-    // いま ひらいて いる ページの タイトル を ファイルめい に（なかみ は ぜんぶ の ページ と おきにいり）
-    const title = state.tab === 'label' ? 'シール ようし' : pageInfo(state.tab, state[state.tab])[0];
-    const base = fileBase(title);
-    saveJson(base, state, `「${base}」で ほぞん しました（ぜんぶの ページ と おきにいりが はいって います）。「ファイルを ひらく」で もとに もどせます。`);
+    document.querySelector('.filemenu').open = false;
+    const f = editingFavHere(), title = pageTitle(state.tab, state[state.tab]);
+    saveItems([{ id: f ? f.id : uid(), tab: state.tab, name: f ? f.name : title, data: state[state.tab] }], f ? f.name : title,
+      `「${fileBase(f ? f.name : title)}」だけ を ファイルに ほぞん しました。`);
+  });
+  // ぜんぶ まとめて：⭐ ぜんぶ と、⭐ に まだ ない つくりかけ（パソコン ⇔ スマホ の ひっこし・バックアップ よう）
+  $('#saveAll').addEventListener('click', () => {
+    document.querySelector('.filemenu').open = false;
+    const drafts = FAV_TABS.filter((t) => !isDefault(t, state[t]) && !sameAsFav(t, state[t]))
+      .map((t) => ({ id: uid(), tab: t, name: `（つくりかけ）${pageTitle(t, state[t])}`, data: state[t] }));
+    const list = (state.favs || []).concat(drafts);
+    if (!list.length) { say('⭐ おきにいり が まだ ありません。', true); return; }
+    const d = new Date(), ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    saveItems(list, `ぜんぶ まとめて ${ymd}`, `${list.length}こ を まとめて ほぞん しました。ひらくと ⭐ に たされます。`);
   });
   $('#openFile').addEventListener('click', () => { document.querySelector('.filemenu').open = false; $('#openInput').click(); });
   $('#openInput').addEventListener('change', (e) => {
@@ -1807,21 +1905,71 @@
     if (!file) return;
     const fr = new FileReader();
     fr.onload = () => {
-      try {
-        const data = JSON.parse(fr.result);
-        if (data.kind === 'favs' && Array.isArray(data.favs)) { addFavsFrom(data); e.target.value = ''; return; }
-        if (!data.schedule || !data.voice) throw new Error('bad');
-        commit(); state = withDefaults(data); editingFav = null; changed();
-        say('ファイルを ひらきました。');
-      } catch (err) { say('この ファイルは ひらけませんでした。', true); }
+      try { openItems(JSON.parse(fr.result)); } catch (err) { say('この ファイルは ひらけませんでした。', true); }
       e.target.value = '';
     };
     fr.readAsText(file);
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { $('#picker').hidden = true; closeShow(); closeTimer(); }
+    if (e.key === 'Escape') { $('#picker').hidden = true; $('#a2hsBox').hidden = true; closeShow(); closeTimer(); }
     if (!$('#show').hidden && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) showStep(e.key === 'ArrowLeft' ? -1 : 1);
   });
+
+  // ---------- ホームがめんに ついか の あんない（スマホ版 だけ） ----------
+  // ついか しなくても つかえる。あんない は「とじる」で けせて、つぎ から でない（したの リンク から いつでも みられる）
+  if (APP_MODE === 'pwa') {
+    const A2KEY = 'shikaku-a2hs-off';
+    const ua = navigator.userAgent || '';
+    // iPad は Mac と おなじ なのる ことが ある ので、タッチ が できるか でも みる
+    const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/i.test(ua);
+    const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    let a2off = false;
+    try { a2off = localStorage.getItem(A2KEY) === '1'; } catch (e) { /* よめなくても よい */ }
+    let installEvt = null;
+    const a2render = () => {
+      const canPrompt = !!installEvt;
+      $('#a2hs').hidden = standalone || a2off || !(isIOS || canPrompt);
+      $('#a2hsGo').hidden = !canPrompt;
+      $('#a2hsHow').hidden = canPrompt;
+      $('#a2hsIosNote').hidden = !isIOS;
+      $('#a2hsLink').hidden = standalone;
+      $('#a2hsBoxGo').hidden = !canPrompt;
+    };
+    const a2prompt = async () => {
+      if (!installEvt) return;
+      const ev = installEvt;
+      installEvt = null;
+      ev.prompt();
+      try { await ev.userChoice; } catch (e) { /* なにも しない */ }
+      a2render();
+    };
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; a2render(); });
+    window.addEventListener('appinstalled', () => {
+      installEvt = null;
+      $('#a2hs').hidden = true; $('#a2hsLink').hidden = true; $('#a2hsBox').hidden = true;
+      say('ホームがめんに ついか しました。こんどから ホームがめんの「しかくカード」で ひらけます。');
+    });
+    const a2open = () => {
+      // つかって いる きかい の やりかた だけ を だす（わからない ときは りょうほう）
+      $('#a2Ios').hidden = !isIOS && isAndroid;
+      $('#a2Android').hidden = isIOS;
+      $('#a2hsBox').hidden = false;
+    };
+    $('#a2hsGo').addEventListener('click', a2prompt);
+    $('#a2hsBoxGo').addEventListener('click', () => { $('#a2hsBox').hidden = true; a2prompt(); });
+    $('#a2hsHow').addEventListener('click', a2open);
+    $('#a2hsHelp').addEventListener('click', a2open);
+    $('#a2hsBoxClose').addEventListener('click', () => { $('#a2hsBox').hidden = true; });
+    $('#a2hsBox').addEventListener('click', (e) => { if (e.target.id === 'a2hsBox') $('#a2hsBox').hidden = true; });
+    $('#a2hsClose').addEventListener('click', () => {
+      a2off = true;
+      try { localStorage.setItem(A2KEY, '1'); } catch (e) { /* ほぞん できなくても よい */ }
+      a2render();
+      say('あんないを とじました。あとで みる ときは、したの「📲 ホームがめんに ついか する には」から みられます。');
+    });
+    a2render();
+  }
 
   if (APP_MODE === 'pwa') {
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -1829,7 +1977,7 @@
   }
 
   changed();
-  if (!storageOK) say('この ひらきかたでは じどうで ほぞん できません。おわったら「ファイルに ほぞん」を つかってください。', true);
+  if (!storageOK) say('この ひらきかたでは じどうで ほぞん できません。おわったら「ぜんぶ まとめて ほぞん」を つかってください。', true);
 })();
 </script>
 </body>
