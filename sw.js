@@ -1,5 +1,5 @@
 // オフラインでも うごく ための しくみ。アプリを なおしたら この ばんごうが かわり、ふるい ものが いれかわる。
-const CACHE = 'shikaku-20261021200059';
+const CACHE = 'shikaku-20261021203928';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 const VER = CACHE.split('-').pop();
 

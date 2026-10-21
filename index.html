@@ -344,6 +344,18 @@
   .mgrid .ic-svg { width: 46px; height: 46px; }
   .ic-svg { display: block; width: 92%; height: 92%; }
   .photobusy { margin: 8px 0 0; color: var(--ui-head); font-size: 15px; }
+  /* しゃしんを あわせる */
+  .cropbox { width: min(420px, 100%); text-align: center; }
+  .cropnote { margin: 0 0 8px; font-size: 13px; color: var(--ui-muted); }
+  .cropstage { width: min(320px, 100%); margin: 0 auto; aspect-ratio: 1; border-radius: 14%; overflow: hidden; border: 3px solid var(--accent);
+    background: repeating-conic-gradient(#eee 0 25%, #fff 0 50%) 0 0 / 20px 20px; }
+  #cropCanvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+  .cropzoom { display: flex; align-items: center; gap: 8px; margin: 10px auto 0; width: min(320px, 100%); }
+  .cropzoom input { flex: 1; }
+  .cropzoom button { width: 44px; padding: 6px 0; font-size: 18px; }
+  .croprow { justify-content: center; flex-wrap: wrap; margin: 8px 0 0; gap: 6px; }
+  .croprow button { font-size: 14px; }
+  .cropok { margin-top: 10px; width: min(320px, 100%); font-size: 17px; }
   .photo { display: block; margin-top: 12px; padding: 10px; border: 2px dashed var(--line); border-radius: 12px; font-size: 15px; }
 
   @media print {
@@ -460,6 +472,17 @@
     <div class="mgrid" id="mgrid"></div>
     <label class="photo">📷 しゃしんを つかう（スマホなら その ばで さつえいも できます）<br><input type="file" accept="image/*,.heic,.heif" id="photoInput"></label>
     <p class="photobusy" id="photoBusy" hidden>しゃしんを よみこんで います…</p>
+  </div>
+</div>
+
+<div class="modal" id="crop" hidden>
+  <div class="mbox cropbox">
+    <div class="mhead"><span>しゃしんを あわせる</span><button id="cropCancel">やめる</button></div>
+    <p class="cropnote">ゆびで ずらすと うごきます。2ほんの ゆびで ひろげると おおきく なります。</p>
+    <div class="cropstage"><canvas id="cropCanvas" width="480" height="480" aria-label="しゃしん の いち と おおきさ"></canvas></div>
+    <div class="cropzoom"><button id="cropOut" aria-label="ちいさく">－</button><input type="range" id="cropZoom" min="0" max="1000" value="0" aria-label="おおきさ"><button id="cropIn" aria-label="おおきく">＋</button></div>
+    <div class="row croprow"><button id="cropRot">↻ まわす</button><button id="cropFit">まるごと いれる</button><button id="cropFill">わく いっぱい</button></div>
+    <button id="cropOk" class="primary cropok">これで きめる</button>
   </div>
 </div>
 
@@ -1249,11 +1272,15 @@
     if (!file) return;
     input.disabled = true;
     $('#photoBusy').hidden = false;
-    try { applyIcon({ t: 'img', v: await readImage(file, 360) }); }
+    let img = null;
+    try { img = await readImage(file); }
     catch (err) { photoError(err); }
     finally { input.disabled = false; $('#photoBusy').hidden = true; input.value = ''; }
+    if (!img) return;
+    const v = await openCrop(img);
+    if (v) applyIcon({ t: 'img', v });
   });
-  async function readImage(file, max) {
+  async function readImage(file) {
     let img;
     try {
       img = await loadImg(file);
@@ -1262,15 +1289,120 @@
       if (!(await isHeic(file))) throw e;
       img = await loadImg(await heicToJpeg(file));
     }
-    const m = Math.min(img.width, img.height), sx = (img.width - m) / 2, sy = (img.height - m) / 2;
-    const size = Math.min(max, m);
+    // おおきすぎる しゃしんは、うごかしやすい ように さきに ちいさく して おく（みじかい ほうを 1920px まで）
+    const k = Math.min(1, 1920 / Math.min(img.width, img.height));
+    if (k >= 1) return img;
     const c = document.createElement('canvas');
-    c.width = c.height = size;
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
-    ctx.drawImage(img, sx, sy, m, m, 0, 0, size, size);
-    return c.toDataURL('image/jpeg', 0.82);
+    c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    return c;
   }
+
+  // ---------- しゃしんを あわせる：ずらす・おおきさ・まわす・まるごと ----------
+  // できあがりは 480×480 の しかく（カードの え の わく と おなじ かたち）
+  const CROP = 480;
+  let cr = null;  // { img, rot, s, cx, cy, resolve }
+  const cropCv = $('#cropCanvas'), cropCtx = cropCv.getContext('2d');
+  const crDims = () => (cr.rot % 2 ? [cr.img.height, cr.img.width] : [cr.img.width, cr.img.height]);
+  const crFit = () => { const [w, h] = crDims(); return CROP / Math.max(w, h); };   // まるごと はいる
+  const crFill = () => { const [w, h] = crDims(); return CROP / Math.min(w, h); };  // わく いっぱい
+  const crMin = () => crFit() * 0.6, crMax = () => crFill() * 5;
+  function crClamp() {
+    cr.s = Math.min(crMax(), Math.max(crMin(), cr.s));
+    const [w, h] = crDims(), W = w * cr.s, H = h * cr.s;
+    // わく より おおきい ときは すきまが できない ように、ちいさい ときは わくから はみださない ように
+    const lim = (c, D) => (D >= CROP ? Math.min(D / 2, Math.max(CROP - D / 2, c)) : Math.min(CROP - D / 2, Math.max(D / 2, c)));
+    cr.cx = lim(cr.cx, W); cr.cy = lim(cr.cy, H);
+  }
+  function crDraw(ctx = cropCtx) {
+    ctx.save();
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, CROP, CROP);
+    ctx.translate(cr.cx, cr.cy); ctx.rotate((cr.rot * Math.PI) / 2); ctx.scale(cr.s, cr.s);
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(cr.img, -cr.img.width / 2, -cr.img.height / 2);
+    ctx.restore();
+    // ものさし の いち
+    const lo = Math.log(crMin()), hi = Math.log(crMax());
+    $('#cropZoom').value = Math.round(((Math.log(cr.s) - lo) / (hi - lo)) * 1000);
+  }
+  let crRaf = 0;
+  const crRedraw = () => { if (!crRaf) crRaf = requestAnimationFrame(() => { crRaf = 0; crClamp(); crDraw(); }); };
+  // おおきさ を かえる（ゆびの あいだ・まんなか を ちゅうしんに）
+  function crZoomAt(ns, px = CROP / 2, py = CROP / 2) {
+    const os = cr.s;
+    cr.s = Math.min(crMax(), Math.max(crMin(), ns));
+    const k = cr.s / os;
+    cr.cx = px + (cr.cx - px) * k; cr.cy = py + (cr.cy - py) * k;
+    crRedraw();
+  }
+  function crReset(fill) { cr.s = fill ? crFill() : crFit(); cr.cx = cr.cy = CROP / 2; crRedraw(); }
+  function openCrop(img) {
+    return new Promise((resolve) => {
+      cr = { img, rot: 0, s: 1, cx: CROP / 2, cy: CROP / 2, resolve };
+      crReset(true);  // はじめは いままで と おなじ「わく いっぱい・まんなか」
+      $('#crop').hidden = false;
+    });
+  }
+  function closeCrop(ok) {
+    if (!cr) return;
+    const { resolve } = cr;
+    let v = null;
+    if (ok) { crClamp(); crDraw(); v = cropCv.toDataURL('image/jpeg', 0.85); }
+    cr = null;
+    $('#crop').hidden = true;
+    resolve(v);
+  }
+  // ゆび・マウス：1ぽん で ずらす、2ほん で おおきさ
+  const crPts = new Map();
+  let crPinch = null;
+  const crPos = (e) => { const r = cropCv.getBoundingClientRect(); return [((e.clientX - r.left) * CROP) / r.width, ((e.clientY - r.top) * CROP) / r.height]; };
+  cropCv.addEventListener('pointerdown', (e) => {
+    if (!cr) return;
+    e.preventDefault();
+    try { cropCv.setPointerCapture(e.pointerId); } catch (err) { /* とれなくても うごく */ }
+    crPts.set(e.pointerId, crPos(e));
+    crPinch = null;
+  });
+  cropCv.addEventListener('pointermove', (e) => {
+    if (!cr || !crPts.has(e.pointerId)) return;
+    const [x, y] = crPos(e), [ox, oy] = crPts.get(e.pointerId);
+    crPts.set(e.pointerId, [x, y]);
+    if (crPts.size === 1) { cr.cx += x - ox; cr.cy += y - oy; crRedraw(); return; }
+    const [a, b] = [...crPts.values()];
+    const d = Math.hypot(a[0] - b[0], a[1] - b[1]), mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+    if (crPinch && crPinch.d > 0) {
+      cr.cx += mx - crPinch.mx; cr.cy += my - crPinch.my;
+      crZoomAt(cr.s * (d / crPinch.d), mx, my);
+    }
+    crPinch = { d, mx, my };
+  });
+  const crUp = (e) => { crPts.delete(e.pointerId); crPinch = null; };
+  cropCv.addEventListener('pointerup', crUp);
+  cropCv.addEventListener('pointercancel', crUp);
+  cropCv.addEventListener('wheel', (e) => {
+    if (!cr) return;
+    e.preventDefault();
+    const [x, y] = crPos(e);
+    crZoomAt(cr.s * Math.exp(-e.deltaY * 0.0015), x, y);
+  }, { passive: false });
+  $('#cropZoom').addEventListener('input', (e) => {
+    if (!cr) return;
+    const lo = Math.log(crMin()), hi = Math.log(crMax());
+    crZoomAt(Math.exp(lo + ((+e.target.value) / 1000) * (hi - lo)));
+  });
+  $('#cropIn').addEventListener('click', () => cr && crZoomAt(cr.s * 1.2));
+  $('#cropOut').addEventListener('click', () => cr && crZoomAt(cr.s / 1.2));
+  $('#cropRot').addEventListener('click', () => {
+    if (!cr) return;
+    // まわしても いまの みえかた（わく いっぱい／まるごと）に ちかい おおきさ を たもつ
+    const wasFit = Math.abs(cr.s - crFit()) < 1e-6;
+    cr.rot = (cr.rot + 1) % 4;
+    crReset(!wasFit);
+  });
+  $('#cropFit').addEventListener('click', () => cr && crReset(false));
+  $('#cropFill').addEventListener('click', () => cr && crReset(true));
+  $('#cropOk').addEventListener('click', () => closeCrop(true));
+  $('#cropCancel').addEventListener('click', () => closeCrop(false));
   function loadImg(blob) {
     return new Promise((resolve, reject) => {
       const url = URL.createObjectURL(blob);
@@ -1929,7 +2061,10 @@
     fr.readAsText(file);
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { $('#picker').hidden = true; $('#a2hsBox').hidden = true; closeShow(); closeTimer(); }
+    if (e.key === 'Escape') {
+      if (!$('#crop').hidden) { closeCrop(false); return; }
+      $('#picker').hidden = true; $('#a2hsBox').hidden = true; closeShow(); closeTimer();
+    }
     if (!$('#show').hidden && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) showStep(e.key === 'ArrowLeft' ? -1 : 1);
   });
 
