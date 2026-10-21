@@ -393,6 +393,7 @@
     <button id="undo">↩ もどす</button>
     <button id="showBtn">📺 みせる</button>
     <button id="favBtn">⭐ のこす</button>
+    <button id="favNewBtn" hidden>⭐ べつに のこす</button>
     <button id="print" class="primary">🖨 いんさつ</button>
     <button id="printFile" class="primary" hidden>🖨 いんさつ よう ファイル</button>
     <details class="filemenu"><summary>📁 ファイル</summary>
@@ -1542,7 +1543,7 @@
     favManage = false;
     setView('make');
     changed();
-    say(`「${f.name}」を ひらきました。なおしたら「⭐ うわがき」で のこせます。`
+    say(`「${f.name}」を ひらきました。なおしたら「⭐ うわがき」、べつの ものに したら「⭐ べつに のこす」で のこせます。`
       + (kept ? `（それまでの つくりかけは「${kept.name}」として ⭐ に いれました）` : ''));
   }
   // ファイルの なかみ を ⭐ に たす
@@ -1591,24 +1592,41 @@
     setView('kids');
     say(added ? `${added}こ を ⭐ おきにいり に たしました（いままで の ものは そのまま です）。` : 'たす ものは ありませんでした（もう ⭐ に はいって います）。');
   }
-  // つくる：⭐ のこす（おきにいりから ひらいた ときは うわがき）
+  // つくる：⭐ のこす。⭐ から ひらいた ときは「⭐ うわがき」と「⭐ べつに のこす」の 2つ を だす
+  // （べつの ものに つくりかえた ときに、まえの ものを うわがき して しまわない ように）
   function editingFavHere() { return editingFav && (state.favs || []).find((x) => x.id === editingFav && x.tab === state.tab); }
   function updateFavBtn() {
-    const f = editingFavHere(), b = $('#favBtn');
+    const f = editingFavHere(), b = $('#favBtn'), nb = $('#favNewBtn');
     b.hidden = !FAV_TABS.includes(state.tab);
     b.textContent = f ? '⭐ うわがき' : '⭐ のこす';
-    b.title = f ? `おきにいり「${f.name}」に うわがき します` : 'いまの ないようを「みせる・つたえる」の おきにいりに のこします';
+    b.title = f ? `⭐「${f.name}」を いまの ないように かきかえます` : 'いまの ないようを「みせる・つたえる」の おきにいりに のこします';
+    nb.hidden = !f || b.hidden;
+    nb.title = f ? `⭐「${f.name}」は そのまま に して、あたらしく もう 1つ のこします` : '';
+  }
+  function addFavNow() {
+    const data = JSON.parse(JSON.stringify(state[state.tab])), name = pageInfo(state.tab, data)[0];
+    const nf = { id: uid(), tab: state.tab, name, data };
+    state.favs = (state.favs || []).concat([nf]);
+    editingFav = nf.id;  // このあと なおしたら、いま のこした ほう に うわがき できる
+    return nf;
   }
   $('#favBtn').addEventListener('click', () => {
     const data = JSON.parse(JSON.stringify(state[state.tab])), f = editingFavHere();
     if (f) {
+      // なまえ を かえて いなければ、タイトル に あわせて なまえ も かえる
+      if (f.name === pageInfo(f.tab, f.data)[0]) f.name = pageInfo(state.tab, data)[0];
       f.data = data;
       say(`⭐「${f.name}」を うわがき しました。`);
     } else {
-      const name = pageInfo(state.tab, data)[0];
-      state.favs = (state.favs || []).concat([{ id: uid(), tab: state.tab, name, data }]);
-      say(`⭐「${name}」を おきにいりに いれました。「みせる・つたえる」から すぐ ひらけます（なまえは そこの「せいり」で かえられます）。`);
+      const nf = addFavNow();
+      say(`⭐「${nf.name}」を おきにいりに いれました。「みせる・つたえる」から すぐ ひらけます（なまえは そこの「せいり」で かえられます）。`);
     }
+    persist();
+    updateFavBtn();
+  });
+  $('#favNewBtn').addEventListener('click', () => {
+    const old = editingFavHere(), nf = addFavNow();
+    say(`⭐「${nf.name}」を あたらしく のこしました。${old ? `「${old.name}」は そのまま です。` : ''}`);
     persist();
     updateFavBtn();
   });
