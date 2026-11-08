@@ -148,6 +148,7 @@
   .filemenu summary::-webkit-details-marker { display: none; }
   .filepop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 6; display: flex; flex-direction: column; gap: 6px; padding: 8px; background: var(--ui-surface); border: 2px solid var(--panel); border-radius: 12px; min-width: 200px; }
   .filepop button { white-space: nowrap; }
+  .filepop { max-width: calc(100vw - 16px); }
   details.more { margin: 12px 0; border: 2px dashed var(--line); border-radius: 12px; padding: 6px 10px; }
   details.more summary { cursor: pointer; font-size: 14px; color: var(--ui-muted); }
 
@@ -634,7 +635,7 @@
   }
   function load() {
     if (storageOK) {
-      try { const raw = localStorage.getItem(KEY); if (raw) return withDefaults(JSON.parse(raw)); } catch (e) { /* さいしょから */ }
+      try { const raw = localStorage.getItem(KEY); if (raw) { const o = withDefaults(JSON.parse(raw)); delete o._t; return o; } } catch (e) { /* さいしょから */ }
     }
     return defaults();
   }
@@ -644,9 +645,88 @@
   let pickPath = null, pickCat = 'life';
   let weekDay = 0;  // しゅうかん よていで なおして いる ひ
 
+  // ---------- ほぞん：IndexedDB（おおきい ほぞん ばしょ）。つかえない ときは これまで どおり localStorage ----------
+  // iPhone の localStorage は 5MB ほど しか なく、しゃしんが ふえると いっぱいに なる。
+  // しゃしんは 1まい ずつ べつに しまい（おなじ しゃしんは 1かい だけ）、ページの なかみ は かるい まま しまう。
+  const IDB_NAME = `${KEY}-db`, IMG_MARK = '\u0000img:';
+  let idb = null, idbTried = false, idbKeys = new Set(), saveTimer = 0, saveChain = Promise.resolve();
+  const hashCache = new Map();
+  function imgHash(v) {
+    let h = hashCache.get(v);
+    if (h) return h;
+    let a = 0x811c9dc5, b = 0x01000193 ^ v.length;
+    for (let i = 0; i < v.length; i++) { const c = v.charCodeAt(i); a = Math.imul(a ^ c, 16777619); b = Math.imul(b ^ c, 2246822519) ^ (b >>> 13); }
+    h = `${(a >>> 0).toString(36)}-${(b >>> 0).toString(36)}-${v.length.toString(36)}`;
+    if (hashCache.size > 500) hashCache.clear();
+    hashCache.set(v, h);
+    return h;
+  }
+  const isImgStr = (v) => typeof v === 'string' && v.length > 2000 && v.startsWith('data:');
+  const txDone = (tx) => new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error || new Error('abort')); });
+  function idbOpen() {
+    return new Promise((resolve, reject) => {
+      const rq = indexedDB.open(IDB_NAME, 1);
+      rq.onupgradeneeded = () => { rq.result.createObjectStore('kv'); rq.result.createObjectStore('img'); };
+      rq.onsuccess = () => resolve(rq.result);
+      rq.onerror = () => reject(rq.error);
+      rq.onblocked = () => reject(new Error('blocked'));
+    });
+  }
+  async function idbLoad(db) {
+    const tx = db.transaction(['kv', 'img'], 'readonly'), im = tx.objectStore('img');
+    let raw = null, keys = [], vals = [];
+    tx.objectStore('kv').get('state').onsuccess = (e) => { raw = e.target.result; };
+    im.getAllKeys().onsuccess = (e) => { keys = e.target.result; };
+    im.getAll().onsuccess = (e) => { vals = e.target.result; };
+    await txDone(tx);
+    const map = new Map(keys.map((k, i) => [k, vals[i]]));
+    idbKeys = new Set(keys);
+    if (!raw) return null;
+    return JSON.parse(raw, (k, v) => (typeof v === 'string' && v.startsWith(IMG_MARK) ? (map.get(v.slice(IMG_MARK.length)) || '') : v));
+  }
+  async function idbSave() {
+    if (!idb) return;
+    const used = new Map();
+    const slim = JSON.stringify(Object.assign({}, state, { _t: Date.now() }), (k, v) => { if (isImgStr(v)) { const h = imgHash(v); used.set(h, v); return IMG_MARK + h; } return v; });
+    const tx = idb.transaction(['kv', 'img'], 'readwrite'), im = tx.objectStore('img');
+    used.forEach((v, h) => { if (!idbKeys.has(h)) im.put(v, h); });
+    idbKeys.forEach((h) => { if (!used.has(h)) im.delete(h); });  // つかわなく なった しゃしん は けす
+    tx.objectStore('kv').put(slim, 'state');
+    await txDone(tx);
+    idbKeys = new Set(used.keys());
+  }
+  // まとめて ほぞん する（つづけて うごかしても 1かい に まとめる。じゅんばん に ほぞん）
+  function flushSave() {
+    clearTimeout(saveTimer); saveTimer = 0;
+    saveChain = saveChain.then(idbSave).catch(() => say('ほぞん できませんでした。「📁 ファイル」→「💾 ぜんぶ まとめて ほぞん」で ファイルに のこして ください。', true));
+    return saveChain;
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden && saveTimer) flushSave(); });
+  window.addEventListener('pagehide', () => { if (saveTimer) flushSave(); });
+  async function startStorage() {
+    try {
+      if (!window.indexedDB) throw new Error('no idb');
+      const db = await idbOpen();
+      const saved = await idbLoad(db);
+      idb = db;
+      let lsT = -1;
+      try { const r = storageOK && localStorage.getItem(KEY); if (r) lsT = JSON.parse(r)._t || 0; } catch (e) { /* よめない */ }
+      if (saved && (saved._t || 0) >= lsT) state = withDefaults(saved);
+      else if (lsT >= 0) await idbSave();  // まえの ほぞん ばしょ（localStorage）の ほうが あたらしい：ひっこし
+      delete state._t;
+      // ひっこし できたら、まえの ほぞん ばしょ は あける
+      if (storageOK) { try { localStorage.removeItem(KEY); } catch (e) { /* のこっても よい */ } }
+    } catch (e) { idb = null; }
+    idbTried = true;
+    changed();
+    if (view === 'kids') renderKids();
+    if (!idb && !storageOK) say('この ひらきかたでは じどうで ほぞん できません。おわったら「ぜんぶ まとめて ほぞん」を つかってください。', true);
+  }
+
   function persist() {
-    if (!storageOK) return;
-    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    if (idb) { clearTimeout(saveTimer); saveTimer = setTimeout(flushSave, 250); return; }
+    if (!idbTried || !storageOK) return;  // よみこみ ちゅう は まつ
+    try { localStorage.setItem(KEY, JSON.stringify(Object.assign({}, state, { _t: Date.now() }))); }
     catch (e) { say('ブラウザに ほぞん できませんでした（しゃしんが おおい かも）。「ぜんぶ まとめて ほぞん」を つかってください。', true); }
   }
   function commit() { undoStack.push(JSON.stringify(state)); if (undoStack.length > 80) undoStack.shift(); }
@@ -1791,6 +1871,15 @@
     const path = e.composedPath();
     document.querySelectorAll('details.filemenu[open]').forEach((m) => { if (!path.includes(m)) m.open = false; });
   });
+  // メニューが がめんの はしで きれない ように、ひらいた ときに ひだり／みぎ よせ を きめる
+  document.querySelectorAll('details.filemenu').forEach((m) => m.addEventListener('toggle', () => {
+    const pop = m.querySelector('.filepop');
+    if (!m.open || !pop) return;
+    pop.style.left = ''; pop.style.right = '';
+    const r = pop.getBoundingClientRect();
+    if (r.left < 8) { pop.style.right = 'auto'; pop.style.left = '0'; }
+    else if (r.right > window.innerWidth - 8) { pop.style.left = 'auto'; pop.style.right = '0'; }
+  }));
 
   // おりたたみ（くわしい せってい）を ひらいた ままに する
   const openMore = new Set();
@@ -2239,7 +2328,7 @@
   }
 
   changed();
-  if (!storageOK) say('この ひらきかたでは じどうで ほぞん できません。おわったら「ぜんぶ まとめて ほぞん」を つかってください。', true);
+  startStorage();
 })();
 </script>
 </body>
