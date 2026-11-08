@@ -1,5 +1,5 @@
 // オフラインでも うごく ための しくみ。アプリを なおしたら この ばんごうが かわり、ふるい ものが いれかわる。
-const CACHE = 'shikaku-20261021203928';
+const CACHE = 'shikaku-20261108221402';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 const VER = CACHE.split('-').pop();
 
@@ -24,7 +24,9 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   const isFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
-  if (url.origin !== location.origin && !isFont) return;
+  // いんさつ よう PDF と iPhone しゃしん の ぶひん（jsDelivr）も しまって おく（2かいめ から オフラインでも つかえる）
+  const isLib = url.hostname === 'cdn.jsdelivr.net';
+  if (url.origin !== location.origin && !isFont && !isLib) return;
   const isPage = req.mode === 'navigate' || (url.origin === location.origin && /(\/|\.html)$/.test(url.pathname));
   if (isPage) {
     // アプリの ページ：つながって いれば いつも あたらしい もの を だす。

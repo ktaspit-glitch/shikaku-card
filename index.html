@@ -364,8 +364,10 @@
     main { display: block; padding: 0; }
     .page { box-shadow: none; border-radius: 0; margin: 0; max-width: none; break-after: page; page-break-after: always; }
     .page:last-child { break-after: auto; page-break-after: auto; }
-    .page.portrait { width: 210mm; height: 297mm; aspect-ratio: auto; }
-    .page.landscape { width: 297mm; height: 210mm; aspect-ratio: auto; }
+    .page.portrait { width: 210mm; height: 297mm; aspect-ratio: auto; max-width: none; }
+    .page.landscape { width: 297mm; height: 210mm; aspect-ratio: auto; max-width: none; }
+    html, body { margin: 0 !important; padding: 0 !important; }
+    .preview { padding: 0 !important; }
   }
 </style>
 </head>
@@ -412,6 +414,8 @@
       <div class="filepop">
         <button id="saveFile">💾 これを ファイルに ほぞん</button>
         <button id="openFile">📂 ファイルを ひらく</button>
+        <button id="pdfFile">📄 いんさつ よう PDF</button>
+        <button id="plainPrint" hidden>🖨 そのまま いんさつ</button>
         <button id="saveAll" class="saveAllBtn">💾 ぜんぶ まとめて ほぞん</button>
       </div>
     </details>
@@ -571,7 +575,7 @@
         items: [it('🚌', 'バス', 'out'), it('🐶', 'いぬ', 'animal'), it('🐱', 'ねこ', 'animal'), it('🍎', 'りんご', 'food'), it('🍌', 'バナナ', 'food'), it('🚗', 'くるま', 'out')],
       },
       schedule: {
-        title: 'きょうの よてい', orient: 'v', showTime: false, showCheck: true, dateMode: 'blank', date: '',
+        title: 'きょうの よてい', orient: 'v', showTime: false, showCheck: true, dateMode: 'blank', date: '', zoom: 'm',
         // しゅうかん よてい（れい）
         week: {
           title: 'こんしゅうの よてい', span: '7', dateMode: 'blank', start: '',
@@ -751,7 +755,9 @@
     const n = d.items.length;
     const head = `<div class="ptitle">${esc(d.title)}</div>${dayDateLine(d)}`;
     if (d.orient === 'v') {
-      const rh = Math.max(6, Math.min(24, (d.showCheck ? 108 : 112) / Math.max(1, n) - 1.8));
+      // おおきさ：ちいさめ／ふつう／おおきめ（すくない ときに ページ いっぱい まで ひろげる）
+      const fill = (d.showCheck ? 108 : 112) / Math.max(1, n) - 1.8, z = d.zoom || 'm';
+      const rh = Math.max(6, z === 's' ? Math.min(17, fill * 0.8) : Math.min(z === 'l' ? 34 : 24, fill));
       const rows = d.items.map((x) => `<div class="srow" data-id="${x.id}" data-say="${esc(x.label)}" style="${catStyle(x.cat)}">
           ${d.showTime ? `<div class="stime">${esc(x.time)}</div>` : ''}
           <div class="ibox">${iconHtml(x.icon)}</div>
@@ -1068,6 +1074,7 @@
         ${dateEditor('schedule', d.dateMode, 'date', d.date, [['today', 'きょう'], ['tomorrow', 'あした']])}
         <label><input type="checkbox" data-path="schedule" data-field="showTime" ${d.showTime ? 'checked' : ''}> じかんを いれる</label>
         <label><input type="checkbox" data-path="schedule" data-field="showCheck" ${d.showCheck ? 'checked' : ''}> おわったら ✔ の まるを いれる</label>
+        ${d.orient === 'v' ? `<h4>おおきさ</h4>${seg('schedule', 'zoom', d.zoom || 'm', [['s', 'ちいさめ'], ['m', 'ふつう'], ['l', 'おおきめ']])}` : ''}
         <h4>よてい（${d.items.length}こ）</h4>
         ${d.items.map((x, i) => itemRow(`schedule.items.${i}`, x, { time: d.showTime, cat: true, list: 'schedule.items', i })).join('')}
         <button data-act="add" data-list="schedule.items">＋ よていを ふやす</button>`;
@@ -1806,7 +1813,7 @@
     state = JSON.parse(prev);
     changed();
   });
-  $('#print').addEventListener('click', () => window.print());
+  $('#print').addEventListener('click', () => (usePdfPrint() ? printPdf() : window.print()));
 
   // がめんで みせる
   let wakeLock = null;
@@ -2033,6 +2040,108 @@
     say(okMsg);
   }
   // これを ほぞん：いま つくって いる 1つ だけ。タイトル が ファイルめい
+  // ---------- いんさつ よう PDF ----------
+  // スマホ（とくに iPhone）の いんさつ は、はしに 日づけ や アドレス が はいったり、用紙に あわなかったり する。
+  // アプリの なかで A4 の PDF を つくって、きょうゆう から「プリント」すれば 用紙 ぴったり に なる。
+  // え に する ぶひん（html2canvas）は、はじめて つかう ときだけ インターネットから よみこむ（そのあとは オフラインでも つかえる）。
+  const H2C_LIB = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+  const H2C_SRI = 'sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H';
+  let h2cLib = null;
+  function loadH2C() {
+    if (window.html2canvas) return Promise.resolve(window.html2canvas);
+    if (!h2cLib) {
+      h2cLib = new Promise((resolve, reject) => {
+        const el = document.createElement('script');
+        el.src = H2C_LIB; el.integrity = H2C_SRI; el.crossOrigin = 'anonymous';
+        el.onload = () => (window.html2canvas ? resolve(window.html2canvas) : reject(new Error('lib')));
+        el.onerror = () => { h2cLib = null; el.remove(); reject(new Error('offline')); };
+        document.head.appendChild(el);
+      });
+    }
+    return h2cLib;
+  }
+  function usePdfPrint() { return APP_MODE === 'pwa' && isTouch; }
+  // JPEG を 1ページ に 1まい ならべた PDF を つくる（A4。たて・よこ）
+  function makePdf(imgs) {
+    const enc = new TextEncoder(), parts = [], offs = [];
+    let len = 0;
+    const push = (x) => { const b = typeof x === 'string' ? enc.encode(x) : x; parts.push(b); len += b.length; };
+    const obj = (id, body) => { offs[id] = len; push(`${id} 0 obj\n`); body(); push('\nendobj\n'); };
+    push(new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34, 0x0a, 0x25, 0xe2, 0xe3, 0xcf, 0xd3, 0x0a]));  // %PDF-1.4
+    obj(1, () => push('<< /Type /Catalog /Pages 2 0 R >>'));
+    obj(2, () => push(`<< /Type /Pages /Kids [${imgs.map((_, i) => `${3 + i * 3} 0 R`).join(' ')}] /Count ${imgs.length} >>`));
+    imgs.forEach((m, i) => {
+      const pid = 3 + i * 3, W = m.land ? 841.89 : 595.28, H = m.land ? 595.28 : 841.89, cs = `q ${W} 0 0 ${H} 0 0 cm /Im${i} Do Q`;
+      obj(pid, () => push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im${i} ${pid + 2} 0 R >> >> /Contents ${pid + 1} 0 R >>`));
+      obj(pid + 1, () => push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+      obj(pid + 2, () => {
+        push(`<< /Type /XObject /Subtype /Image /Width ${m.w} /Height ${m.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${m.bytes.length} >>\nstream\n`);
+        push(m.bytes);
+        push('\nendstream');
+      });
+    });
+    const total = 3 + imgs.length * 3, xref = len;
+    let x = `xref\n0 ${total}\n0000000000 65535 f \n`;
+    for (let id = 1; id < total; id++) x += `${String(offs[id]).padStart(10, '0')} 00000 n \n`;
+    push(`${x}trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`);
+    return new Blob(parts, { type: 'application/pdf' });
+  }
+  // いま の ページ を、がめん の おおきさ に かかわらず A4（96dpi で 794×1123）で ならべて え に する
+  async function pagesToPdf() {
+    const r = PAGES[state.tab](state[state.tab]), land = r.orient === 'landscape';
+    const W = land ? 1123 : 794, H = land ? 794 : 1123;
+    const h2c = await loadH2C();
+    const box = document.createElement('div');
+    box.className = `preview pdfbox ${lookClass()}`;
+    box.style.cssText = `position:fixed;left:-30000px;top:0;width:${W}px;padding:0;`;
+    box.innerHTML = r.html;
+    document.body.appendChild(box);
+    try {
+      if (document.fonts && document.fonts.ready) await document.fonts.ready;
+      const out = [];
+      for (const pg of box.querySelectorAll('.page')) {
+        pg.style.cssText += `;width:${W}px;height:${H}px;max-width:none;aspect-ratio:auto;margin:0;box-shadow:none;border-radius:0;`;
+        const cv = await h2c(pg, { scale: 1.6, backgroundColor: '#ffffff', logging: false, windowWidth: W + 40, windowHeight: H + 40 });
+        const bin = atob(cv.toDataURL('image/jpeg', 0.9).split(',')[1]), bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        out.push({ bytes, w: cv.width, h: cv.height, land });
+      }
+      return makePdf(out);
+    } finally { box.remove(); }
+  }
+  let pdfBusy = false;
+  async function printPdf() {
+    if (pdfBusy) return;
+    pdfBusy = true;
+    document.querySelector('.filemenu').open = false;
+    say('いんさつ よう の PDF を つくって います。すこし まってね…');
+    try {
+      const blob = await pagesToPdf(), name = `${fileBase(pageTitle(state.tab, state[state.tab]))}.pdf`;
+      const file = new File([blob], name, { type: 'application/pdf' });
+      if (isTouch && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: name });
+          say('PDF が できました。でて きた メニューの「プリント」から いんさつ できます（「ファイル」に ほぞん も できます）。');
+          return;
+        } catch (e) {
+          if (e && e.name === 'AbortError') { say('PDF を つくりました（いんさつ は やめました）。'); return; }
+        }
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      say(`「${name}」を ほぞん しました。ひらいて いんさつ してください。`);
+    } catch (err) {
+      say(err && err.message === 'offline' ? 'はじめて PDF を つくる ときは、インターネットに つないで ください（つぎ からは つながなくても つくれます）。' : 'PDF を つくれませんでした。「🖨 そのまま いんさつ」を ためして ください。', true);
+    } finally { pdfBusy = false; }
+  }
+  $('#pdfFile').addEventListener('click', printPdf);
+  $('#plainPrint').addEventListener('click', () => { document.querySelector('.filemenu').open = false; window.print(); });
+  if (usePdfPrint()) { $('#print').textContent = '🖨 いんさつ（PDF）'; $('#plainPrint').hidden = false; }
+  if (PHONE_BUILD) $('#pdfFile').hidden = true;
+
   $('#saveFile').addEventListener('click', () => {
     document.querySelector('.filemenu').open = false;
     const f = editingFavHere(), title = pageTitle(state.tab, state[state.tab]);
